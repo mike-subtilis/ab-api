@@ -22,6 +22,9 @@ async function startServer() {
   app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
   app.use('/api', apiFactory.create(config.authentication, repo));
+  app.get('/', (req, res) => {
+    res.send('Welcome to the AnswerBrawl API');
+  });
 
   app.listen(port, () => {
     console.log(`server is running on port ${port}...`);
