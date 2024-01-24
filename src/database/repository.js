@@ -13,7 +13,7 @@ module.exports.create = async (dbConfig) => {
     .createIfNotExists({ id: 'Users', partitionKey: { kind: 'Hash', paths: ['/userId'] } });
 
   return {
-    question: baseCosmosContainerRepo.create(cosmosDb.container('Questions'), 'questionId'),
-    user: baseCosmosContainerRepo.create(cosmosDb.container('Users'), 'userId'),
+    question: baseCosmosContainerRepo.create(cosmosDb.container('Questions'), 'questionId', q => q.id),
+    user: baseCosmosContainerRepo.create(cosmosDb.container('Users'), 'userId', u => u.id),
   };
 };
