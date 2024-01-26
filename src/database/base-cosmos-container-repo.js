@@ -36,13 +36,17 @@ module.exports.create = (container, partitionField, createPartitionValue) => {
     return result;
   }
 
-  async function create(partitionValue, fields) {
+  async function create(partitionValue, fields, currentUser) {
     const attributionDate = new Date().toISOString();
     const attributedAndIdFields = {
       id: crypto.randomUUID(),
       ...fields,
       createdAt: attributionDate,
+      createdBy: currentUser.id,
+      createdByUserName: currentUser.name,
       updatedAt: attributionDate,
+      updatedBy: currentUser.id,
+      updatedByUserName: currentUser.name,
     };
     attributedAndIdFields[partitionField] = partitionValue
       || fields[partitionField]
@@ -55,7 +59,7 @@ module.exports.create = (container, partitionField, createPartitionValue) => {
     return createdUser;
   }
 
-  async function update(id, partitionValue, eTag, fields) {
+  async function update(id, partitionValue, eTag, fields, currentUser) {
     const itemRef = container.item(id, partitionValue);
 
     const { resource: existingItem } = await itemRef.read();
@@ -71,6 +75,8 @@ module.exports.create = (container, partitionField, createPartitionValue) => {
       ...existingItem,
       ...fields,
       updatedAt: new Date().toISOString(),
+      updatedBy: currentUser.id,
+      updatedByUserName: currentUser.name,
     };
     const { updatedItem } = await itemRef
       .replace(updatedFields, { accessCondition: { type: 'IfMatch', condition: eTag } });
@@ -78,7 +84,7 @@ module.exports.create = (container, partitionField, createPartitionValue) => {
     return updatedItem;
   }
 
-  async function deleteEntity(id, partitionValue, eTag) {
+  async function deleteEntity(id, partitionValue, eTag) { // also passed: currentUser
     const itemRef = container.item(id, partitionValue);
 
     const { resource: existingItem } = await itemRef.read();
