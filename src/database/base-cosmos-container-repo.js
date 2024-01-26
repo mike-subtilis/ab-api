@@ -42,11 +42,11 @@ module.exports.create = (container, partitionField, createPartitionValue) => {
       id: crypto.randomUUID(),
       ...fields,
       createdAt: attributionDate,
-      createdBy: currentUser.id,
-      createdByUserName: currentUser.name,
+      createdBy: currentUser?.id,
+      createdByUserName: currentUser?.name,
       updatedAt: attributionDate,
-      updatedBy: currentUser.id,
-      updatedByUserName: currentUser.name,
+      updatedBy: currentUser?.id,
+      updatedByUserName: currentUser?.name,
     };
     attributedAndIdFields[partitionField] = partitionValue
       || fields[partitionField]
