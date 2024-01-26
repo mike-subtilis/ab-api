@@ -4,8 +4,10 @@ module.exports = {
   authentication: {
     auth0: {
       domain: process.env.AUTH0_DOMAIN,
-      clientId: process.env.AUTH0_CLIENTID,
       audience: process.env.AUTH0_AUDIENCE,
+      apiClientId: process.env.AUTH0_API_CLIENT_ID,
+      apiClientSecret: process.env.AUTH0_API_CLIENT_SECRET,
+      apiAudience: process.env.AUTH0_API_AUDIENCE,
     },
     appOrigin: process.env.APP_ORIGIN,
   },
