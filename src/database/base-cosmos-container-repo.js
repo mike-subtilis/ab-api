@@ -29,8 +29,11 @@ module.exports.create = (container, partitionField, createPartitionValue) => {
   }
 
   async function get(id, partitionValue) {
+    const safePartitionValue = partitionValue
+      || safeCreatePartitionValue({ id });
+
     const { resource: result } = await container
-      .item(id, partitionValue)
+      .item(id, safePartitionValue)
       .read();
 
     return result;
@@ -60,7 +63,10 @@ module.exports.create = (container, partitionField, createPartitionValue) => {
   }
 
   async function update(id, eTag, fields, currentUser, partitionValue) {
-    const itemRef = container.item(id, partitionValue);
+    const safePartitionValue = partitionValue
+      || safeCreatePartitionValue({ ...fields, id });
+
+    const itemRef = container.item(id, safePartitionValue);
 
     const { resource: existingItem } = await itemRef.read();
 
@@ -85,7 +91,10 @@ module.exports.create = (container, partitionField, createPartitionValue) => {
   }
 
   async function deleteEntity(id, eTag, currentUser, partitionValue) {
-    const itemRef = container.item(id, partitionValue);
+    const safePartitionValue = partitionValue
+      || safeCreatePartitionValue({ id });
+
+    const itemRef = container.item(id, safePartitionValue);
 
     const { resource: existingItem } = await itemRef.read();
 
