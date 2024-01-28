@@ -36,7 +36,7 @@ module.exports.create = (container, partitionField, createPartitionValue) => {
     return result;
   }
 
-  async function create(partitionValue, fields, currentUser) {
+  async function create(fields, currentUser, partitionValue) {
     const attributionDate = new Date().toISOString();
     const attributedAndIdFields = {
       id: crypto.randomUUID(),
@@ -59,7 +59,7 @@ module.exports.create = (container, partitionField, createPartitionValue) => {
     return createdUser;
   }
 
-  async function update(id, partitionValue, eTag, fields, currentUser) {
+  async function update(id, eTag, fields, currentUser, partitionValue) {
     const itemRef = container.item(id, partitionValue);
 
     const { resource: existingItem } = await itemRef.read();
@@ -84,7 +84,7 @@ module.exports.create = (container, partitionField, createPartitionValue) => {
     return updatedItem;
   }
 
-  async function deleteEntity(id, partitionValue, eTag) { // also passed: currentUser
+  async function deleteEntity(id, eTag, currentUser, partitionValue) {
     const itemRef = container.item(id, partitionValue);
 
     const { resource: existingItem } = await itemRef.read();

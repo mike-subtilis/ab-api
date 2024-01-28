@@ -21,21 +21,21 @@ module.exports.create = (repo, entityType, options = {}) => {
 
   if (!options.readOnly) {
     router.post('/', (req, res) => {
-      entityRepo.create(req.query[entityRepo.partitionField], req.body, req.user)
+      entityRepo.create(req.body, req.user, req.query[entityRepo.partitionField])
         .then((results) => {
           res.json(results);
         });
     });
 
     router.put('/:id', (req, res) => {
-      entityRepo.update(req.params.id, req.query[entityRepo.partitionField], req.query.etag, req.body, req.user)
+      entityRepo.update(req.params.id, req.query.etag, req.body, req.user, req.query[entityRepo.partitionField])
         .then((results) => {
           res.json(results);
         });
     });
 
     router.delete('/:id', (req, res) => {
-      entityRepo.delete(req.params.id, req.query[entityRepo.partitionField], req.query.etag, req.user)
+      entityRepo.delete(req.params.id, req.query.etag, req.user, req.query[entityRepo.partitionField])
         .then(() => res.sendStatus(200));
     });
   }
