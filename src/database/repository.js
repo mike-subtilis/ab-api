@@ -10,10 +10,14 @@ module.exports.create = async (dbConfig) => {
     .createIfNotExists({ id: 'Questions', partitionKey: { kind: 'Hash', paths: ['/questionId'] } });
   await cosmosDb
     .containers
+    .createIfNotExists({ id: 'Answers', partitionKey: { kind: 'Hash', paths: ['/answerId'] } });
+  await cosmosDb
+    .containers
     .createIfNotExists({ id: 'Users', partitionKey: { kind: 'Hash', paths: ['/userId'] } });
 
   return {
     question: baseCosmosContainerRepo.create(cosmosDb.container('Questions'), 'questionId', q => q.id),
+    answer: baseCosmosContainerRepo.create(cosmosDb.container('Answers'), 'answerId', a => a.id),
     user: baseCosmosContainerRepo.create(cosmosDb.container('Users'), 'userId', u => u.id),
   };
 };

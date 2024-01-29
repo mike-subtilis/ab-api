@@ -28,6 +28,7 @@ module.exports.create = (authenticationConfig, repo) => {
     });
 
     router.use('/questions', baseEntityApiFactory.create(repo, 'question'));
+    router.use('/answers', baseEntityApiFactory.create(repo, 'answer'));
     router.use('/users', baseEntityApiFactory.create(repo, 'user'));
   }
 
