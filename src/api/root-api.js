@@ -13,12 +13,6 @@ module.exports.create = (authenticationConfig, repo) => {
     router.use(authenticate);
     if (loadUser) {
       router.use(loadUser);
-
-      router.get('/who-am-i', (req, res) => {
-        res.send({
-          msg: `You are ${JSON.stringify(req.user)}`,
-        });
-      });
     }
 
     router.get('/check-authenticated', (req, res) => {
@@ -29,6 +23,7 @@ module.exports.create = (authenticationConfig, repo) => {
 
     router.use('/questions', baseEntityApiFactory.create(repo, 'question'));
     router.use('/answers', baseEntityApiFactory.create(repo, 'answer'));
+    router.use('/users/me', (req, res) => res.json(req.user));
     router.use('/users', baseEntityApiFactory.create(repo, 'user'));
   }
 
