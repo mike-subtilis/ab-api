@@ -91,7 +91,7 @@ module.exports.create = ({ authorizationRules, entityRepo }) => {
     return false;
   }
 
-  return grantKey => ((req, res, next) => {
+  return grantKey => (async (req, res, next) => {
     try {
       const tokens = grantKey.split(':');
       const entityType = tokens[0];
@@ -99,14 +99,15 @@ module.exports.create = ({ authorizationRules, entityRepo }) => {
       // const subActionType = tokens.length > 2 ? tokens[2] : null;
 
       const parentGrantKey = `${entityType}:${actionType}`;
-      if (passesGrantPolicies(grantKey, req)) {
+      if (await passesGrantPolicies(grantKey, req)) {
         next();
-      } else if (parentGrantKey !== grantKey && passesGrantPolicies(parentGrantKey, req)) {
+      } else if (parentGrantKey !== grantKey && await passesGrantPolicies(parentGrantKey, req)) {
         next();
+      } else {
+        next(new Error(`You do not have '${grantKey}' access to this endpoint`));
       }
     } catch (ex) {
       next(ex);
     }
-    next(new Error(`You do not have '${grantKey}' access to this endpoint`));
   });
 };

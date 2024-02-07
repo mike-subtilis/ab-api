@@ -25,23 +25,99 @@ describe('authorization-middleware.create()', () => {
       const mockRules = {
         'sample:read': true,
         'sample:create': true,
-        'sample:update': true,
+        'sample:update': [
+          {
+            "name": "users can update their own samples",
+            "matches": [
+              { "user": "id", "target": "createdBy" }
+            ]
+          },
+        ],
         'sample:delete': true,
       };
       const sampleEntities = {
-        1: { id: 1, name: 'mock-1', fieldInt: 11 },
-        2: { id: 2, name: 'mock-2', fieldInt: 22 },
+        1: { id: 1, name: 'mock-1', fieldInt: 1.1, createdBy: 'user-1' },
+        2: { id: 2, name: 'mock-2', fieldInt: 2.2, createdBy: 'user-2' },
+        11: { id: 11, name: 'mock-11', fieldInt: 11.11, createdBy: 'user-1' },
       };
       const mockRepo = { get: id => sampleEntities[id] };
       sut = sutFactory.create({ authorizationRules: mockRules, entityRepo: mockRepo });
     });
 
-    test('undefined grant should fail', () => {
+    test('undefined grant should fail', (done) => {
       const middleware = sut('sample:something');
-      let resultException;
-      middleware(null, null, (ex) => { resultException = ex; });
-      expect(resultException).toBeDefined();
-      expect(resultException.message).toMatch(/sample:something/);
+
+      middleware({}, {}, (nextErr) => {
+        try {
+          expect(nextErr).toBeDefined();
+          expect(nextErr.message).toMatch(/sample:something/);
+          done();
+        } catch (doneErr) {
+          done(doneErr);
+        }
+      });
+    });
+
+    test('users can read any sample', (done) => {
+      const middleware = sut('sample:read');
+
+      middleware({ user: { id: 'user-1' }, params: { id: '999' } },
+        {},
+        (nextErr) => {
+          try {
+            expect(nextErr).not.toBeDefined();
+            done();
+          } catch (doneErr) {
+            done(doneErr);
+          }
+        });
+    });
+
+    test('users can update their own samples', (done) => {
+      const middleware = sut('sample:update');
+
+      middleware({ user: { id: 'user-1' }, params: { id: '1' } },
+        {},
+        (nextErr) => {
+          try {
+            expect(nextErr).not.toBeDefined();
+            done();
+          } catch (doneErr) {
+            done(doneErr);
+          }
+        });
+    });
+
+    test('users cant update other users samples', (done) => {
+      const middleware = sut('sample:update');
+
+      middleware({ user: { id: 'user-1' }, params: { id: '2' } },
+        {},
+        (nextErr) => {
+          try {
+            expect(nextErr).toBeDefined();
+            expect(nextErr.message).toMatch(/sample:update/);
+            done();
+          } catch (doneErr) {
+            done(doneErr);
+          }
+        });
+    });
+
+    test('users cant update non-existant samples', (done) => {
+      const middleware = sut('sample:update');
+
+      middleware({ user: { id: 'user-1' }, params: { id: '999' } },
+        {},
+        (nextErr) => {
+          try {
+            expect(nextErr).toBeDefined();
+            expect(nextErr.message).toMatch(/sample:update/);
+            done();
+          } catch (doneErr) {
+            done(doneErr);
+          }
+        });
     });
   });
 });
