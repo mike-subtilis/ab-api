@@ -1,10 +1,12 @@
 const express = require('express');
 const authorizationFactory = require('./authorization-middleware');
+const authorizationRules = require('./hardcoded-authorization.json');
 
 module.exports.create = (repo, entityType, options = {}) => {
   const router = express.Router();
   const entityRepo = repo[entityType];
-  const authorizer = authorizationFactory.create({ repo });
+  const authorizer = authorizationFactory.create({ authorizationRules, entityRepo });
+
   router.get('/', authorizer(`${entityType}:list`), (req, res) => {
     const { page = 1, pageSize = 25, ...rest } = req.query;
     entityRepo.getPage(page, pageSize, rest)

@@ -1,7 +1,13 @@
 const { asyncEvery, asyncSome, intersection } = require('../util/arrayUtil');
-const hardcodedAuthorization = require('./hardcoded-authorization.json');
 
-module.exports.create = ({ entityRepo }) => {
+module.exports.create = ({ authorizationRules, entityRepo }) => {
+  if (!authorizationRules) {
+    throw new Error('Authorization Rules are required to set up the authorization-middleware');
+  }
+  if (!entityRepo) {
+    throw new Error('Entity Repo is required to set up the authorization-middleware');
+  }
+
   function doValuesMatch(a, b) {
     if (Array.isArray(a)) {
       if (Array.isArray(b)) {
@@ -68,8 +74,8 @@ module.exports.create = ({ entityRepo }) => {
   }
 
   async function passesGrantPolicies(grantKey, req) {
-    if (Object.hasOwn(hardcodedAuthorization, grantKey) && hardcodedAuthorization[grantKey]) {
-      const grantPolicies = hardcodedAuthorization[grantKey];
+    if (Object.hasOwn(authorizationRules, grantKey) && authorizationRules[grantKey]) {
+      const grantPolicies = authorizationRules[grantKey];
       if (typeof grantPolicies === 'boolean') {
         return true;
       }
