@@ -11,6 +11,6 @@
     "rules": {
         "arrow-parens": ["error", "as-needed", { "requireForBlockBody": true }],
         "max-len": ["error", 160],
-        "no-underscore-dangle": ["error", { "allow": ["_etag"] }]
+        "no-underscore-dangle": ["error", { "allow": ["_etag", "_cache"] }]
     }
 }

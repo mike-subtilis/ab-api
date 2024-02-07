@@ -15,7 +15,7 @@ async function startServer() {
   app.use(morgan('dev'));
   app.use(helmet());
   if (config.authentication.appOrigin) {
-    console.log('configuring CORS with ' + config.authentication.appOrigin);
+    console.log(`configuring CORS with ${config.authentication.appOrigin}`);
     app.use(cors({ origin: config.authentication.appOrigin }));
   }
 

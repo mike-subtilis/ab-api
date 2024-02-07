@@ -1,0 +1,88 @@
+{
+  "user:list": [
+    {
+      "name": "users can see other users names",
+      "matches": true,
+      "fields": ["id", "name"]
+    }
+  ],
+  "user:read": [
+    {
+      "name": "users can read their own profile",
+      "matches": [{ "user": "id", "target": "id" }]
+    },
+    {
+      "name": "users can see other users names",
+      "matches": true,
+      "fields": ["id", "name"]
+    }
+  ],
+  "user:create": false,
+  "user:update": [
+    {
+      "name": "users can edit their name",
+      "matches": [{ "user": "id", "target": "id" }],
+      "fields": ["name"]
+    }
+  ],
+  "user:delete": false,
+
+  "question:list": true,
+  "question:read": [
+    {
+      "name": "users can read their own questions",
+      "matches": [{ "user": "id", "target": "createdBy" }]
+    },
+    {
+      "name": "users can read public questions",
+      "matches": [{ "target": "publicity", "fixed": "public" }]
+    }
+  ],
+  "question:create": true,
+  "question:update": [
+    {
+      "name": "users can update their own questions",
+      "matches": [
+        { "user": "id", "target": "createdBy" }
+      ]
+    },
+    {
+      "name": "users can suggest tags and answers on other questions",
+      "matches": true,
+      "fields": ["suggestedTags", "suggestedAnswers"]
+    }
+  ],
+  "question:delete": [
+    {
+      "name": "users can delete their own questions",
+      "matches": [
+        { "user": "id", "target": "createdBy" }
+      ]
+    }
+  ],
+
+  "answer:list": true,
+  "answer:read": true,
+  "answer:create": true,
+  "answer:update": [
+    {
+      "name": "users can update their own answers",
+      "matches": [
+        { "user": "id", "target": "createdBy" }
+      ]
+    },
+    {
+      "name": "users can suggest tags on other answers",
+      "matches": true,
+      "fields": ["suggestedTags"]
+    }
+  ],
+  "answer:delete": [
+    {
+      "name": "users can delete their own questions",
+      "matches": [
+        { "user": "id", "target": "createdBy" }
+      ]
+    }
+  ]
+}
