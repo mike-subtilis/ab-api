@@ -1,7 +1,8 @@
 const express = require('express');
-const baseEntityApiFactory = require('./base-express-entity-api');
 const auth0MiddlewareFactory = require('./auth0-middleware');
+const baseEntityApiFactory = require('./base-express-entity-api');
 const publicApiFactory = require('./public-api');
+const usersMeApiFactory = require('./users-me-api');
 
 module.exports.create = (authenticationConfig, repo) => {
   const router = express.Router();
@@ -23,7 +24,7 @@ module.exports.create = (authenticationConfig, repo) => {
 
     router.use('/questions', baseEntityApiFactory.create(repo, 'question'));
     router.use('/answers', baseEntityApiFactory.create(repo, 'answer'));
-    router.use('/users/me', (req, res) => res.json(req.user));
+    router.use('/users/me', usersMeApiFactory.create(repo));
     router.use('/users', baseEntityApiFactory.create(repo, 'user'));
   }
 

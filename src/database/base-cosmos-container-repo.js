@@ -84,7 +84,7 @@ module.exports.create = (container, partitionField, createPartitionValue) => {
       updatedBy: currentUser.id,
       updatedByUserName: currentUser.name,
     };
-    const { updatedItem } = await itemRef
+    const { resource: updatedItem } = await itemRef
       .replace(updatedFields, { accessCondition: { type: 'IfMatch', condition: eTag } });
 
     return updatedItem;

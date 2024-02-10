@@ -17,11 +17,13 @@
       "fields": ["id", "name"]
     }
   ],
+  "user:read:me": true,
   "user:create": false,
-  "user:update": [
+  "user:update": false,
+  "user:update:me": [
     {
-      "name": "users can edit their name",
-      "matches": [{ "user": "id", "target": "id" }],
+      "name": "users can edit their own name",
+      "matches": true,
       "fields": ["name"]
     }
   ],

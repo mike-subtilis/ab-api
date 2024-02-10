@@ -12,6 +12,9 @@ const asyncEvery = async (arr, predicate) => {
   return true;
 };
 
+const asyncFilter = async (arr, predicate) => Promise.all(arr.map(predicate))
+  .then(results => arr.filter((_v, index) => results[index]));
+
 const asyncSome = async (arr, predicate) => {
   for (let i = 0; i < arr.length; i += 1) {
     const e = arr[i];
@@ -24,6 +27,7 @@ const asyncSome = async (arr, predicate) => {
 
 module.exports = {
   asyncEvery,
+  asyncFilter,
   asyncSome,
   intersection,
 };
