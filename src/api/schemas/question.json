@@ -1,0 +1,10 @@
+{
+  "prefix": { "type": "string" },
+  "metric": { "type": "string" },
+  "subject": { "type": "string" },
+
+  "tags": { "type": "array" },
+  "publicity": { "type": "string", "enum": ["private", "unlisted", "public"] },
+
+  "questionId": { "type": "string", "format": "uuid" }
+}

@@ -5,15 +5,15 @@ describe('authorization-middleware.create()', () => {
     test('constructor requires parameters', () => {
       expect(() => sutFactory.create()).toThrow();
     });
-    test('constructor requires entityRepo', () => {
+    test('constructor requires repo', () => {
       expect(() => sutFactory.create({ authorizationRules: {} })).toThrow();
     });
     test('constructor requires authorizationRules', () => {
-      expect(() => sutFactory.create({ entityRepo: {} })).toThrow();
+      expect(() => sutFactory.create({ repo: {} })).toThrow();
     });
 
     test('constructor with authorizationRules and entityRepo should create', () => {
-      const sut = sutFactory.create({ authorizationRules: {}, entityRepo: {} });
+      const sut = sutFactory.create({ authorizationRules: {}, repo: {} });
       expect(sut).toBeDefined();
       expect(typeof sut).toBe('function');
     });
@@ -40,8 +40,8 @@ describe('authorization-middleware.create()', () => {
         2: { id: 2, name: 'mock-2', fieldInt: 2.2, createdBy: 'user-2' },
         11: { id: 11, name: 'mock-11', fieldInt: 11.11, createdBy: 'user-1' },
       };
-      const mockRepo = { get: id => sampleEntities[id] };
-      sut = sutFactory.create({ authorizationRules: mockRules, entityRepo: mockRepo });
+      const sampleMockRepo = { get: id => sampleEntities[id] };
+      sut = sutFactory.create({ authorizationRules: mockRules, repo: { sample: sampleMockRepo } });
     });
 
     test('undefined grant should fail', (done) => {

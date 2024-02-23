@@ -47,11 +47,6 @@
       "matches": [
         { "user": "id", "target": "createdBy" }
       ]
-    },
-    {
-      "name": "users can suggest tags and answers on other questions",
-      "matches": true,
-      "fields": ["suggestedTags", "suggestedAnswers"]
     }
   ],
   "question:delete": [

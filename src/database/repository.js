@@ -1,5 +1,6 @@
 const cosmos = require('@azure/cosmos');
 const baseCosmosContainerRepo = require('./base-cosmos-container-repo');
+const questionMigrations = require('./migrations/question');
 
 module.exports.create = async (dbConfig) => {
   const cosmosClient = new cosmos.CosmosClient(dbConfig.cosmos);
@@ -16,8 +17,20 @@ module.exports.create = async (dbConfig) => {
     .createIfNotExists({ id: 'Users', partitionKey: { kind: 'Hash', paths: ['/userId'] } });
 
   return {
-    question: baseCosmosContainerRepo.create(cosmosDb.container('Questions'), 'questionId', q => q.id),
-    answer: baseCosmosContainerRepo.create(cosmosDb.container('Answers'), 'answerId', a => a.id),
-    user: baseCosmosContainerRepo.create(cosmosDb.container('Users'), 'userId', u => u.id),
+    question: baseCosmosContainerRepo.create(
+      cosmosDb.container('Questions'),
+      {
+        partitionField: 'questionId',
+        migrations: questionMigrations.create(),
+      },
+    ),
+    answer: baseCosmosContainerRepo.create(
+      cosmosDb.container('Answers'),
+      { partitionField: 'answerId' },
+    ),
+    user: baseCosmosContainerRepo.create(
+      cosmosDb.container('Users'),
+      { partitionField: 'userId' },
+    ),
   };
 };

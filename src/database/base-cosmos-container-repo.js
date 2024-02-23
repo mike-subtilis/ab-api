@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 
-module.exports.create = (container, partitionField, createPartitionValue) => {
+module.exports.create = (container, constructorOptions) => {
+  const { partitionField, createPartitionValue, migrations } = constructorOptions;
   const safeCreatePartitionValue = createPartitionValue || (v => v.id);
 
   async function getPage(pageNumber, pageSize, queryOptions) {
@@ -25,6 +26,10 @@ module.exports.create = (container, partitionField, createPartitionValue) => {
       })
       .fetchAll();
 
+    if (migrations) {
+      return results.map(migrations.migrateUpAll);
+    }
+
     return results;
   }
 
@@ -36,6 +41,9 @@ module.exports.create = (container, partitionField, createPartitionValue) => {
       .item(id, safePartitionValue)
       .read();
 
+    if (migrations) {
+      return migrations.migrateUpAll(result);
+    }
     return result;
   }
 

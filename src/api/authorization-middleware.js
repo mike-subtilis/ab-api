@@ -1,14 +1,14 @@
 const authorizerFactory = require('./authorizer');
 
-module.exports.create = ({ authorizationRules, entityRepo }) => {
+module.exports.create = ({ authorizationRules, repo }) => {
   if (!authorizationRules) {
     throw new Error('Authorization Rules are required to set up the authorization-middleware');
   }
-  if (!entityRepo) {
-    throw new Error('Entity Repo is required to set up the authorization-middleware');
+  if (!repo) {
+    throw new Error('Repo is required to set up the authorization-middleware');
   }
 
-  const authorizer = authorizerFactory.create({ authorizationRules, entityRepo });
+  const authorizer = authorizerFactory.create({ authorizationRules, repo });
 
   return grantKey => (async (req, res, next) => {
     console.log(`checking permission for ${grantKey}...`);

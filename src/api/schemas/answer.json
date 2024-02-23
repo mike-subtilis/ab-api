@@ -1,0 +1,7 @@
+{
+  "text": { "type": "string" },
+  "tags": { "type": "array" },
+  "publicity": { "type": "string", "enum": ["private", "public"] },
+
+  "answerId": { "type": "string", "format": "uuid" }
+}

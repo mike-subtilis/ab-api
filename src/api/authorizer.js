@@ -1,6 +1,6 @@
 const { asyncEvery, asyncSome, intersection } = require('../util/arrayUtil');
 
-module.exports.create = ({ authorizationRules, entityRepo }) => {
+module.exports.create = ({ authorizationRules, repo }) => {
   function doValuesMatch(a, b) {
     if (Array.isArray(a)) {
       if (Array.isArray(b)) {
@@ -14,7 +14,7 @@ module.exports.create = ({ authorizationRules, entityRepo }) => {
     return a === b;
   }
 
-  async function passesGrantPolicyMatch(m, req) {
+  async function passesGrantPolicyMatch(entityType, m, req) {
     // m: { user, target, fixed } <-- must have exactly 2 of those fields
     if (!Object.keys(m).length === 2) {
       throw new Error(`Grant policy match should have exactly 2 fields (found ${Object.keys(m).join(',')})`);
@@ -34,7 +34,7 @@ module.exports.create = ({ authorizationRules, entityRepo }) => {
       if (mockedTarget[m.target]) {
         operands.push(mockedTarget[m.target]);
       } else {
-        const target = await entityRepo.get(req.params.id);
+        const target = await repo[entityType].get(req.params.id);
         if (!target) {
           return false;
         }
@@ -46,7 +46,7 @@ module.exports.create = ({ authorizationRules, entityRepo }) => {
     return doValuesMatch(operands[0], operands[1]);
   }
 
-  async function passesGrantPolicy(p, req) {
+  async function passesGrantPolicy(entityType, p, req) {
     // p: { name, matches: true || [{ user, target, fixed }], fields: [] }
     if (p.fields) {
       if (Object.keys(req.body || {}).some(k => !p.fields.includes(k))) {
@@ -57,7 +57,7 @@ module.exports.create = ({ authorizationRules, entityRepo }) => {
       return false;
     }
     if (Array.isArray(p.matches)) {
-      const matchesEvery = await asyncEvery(p.matches, async m => passesGrantPolicyMatch(m, req));
+      const matchesEvery = await asyncEvery(p.matches, async m => passesGrantPolicyMatch(entityType, m, req));
       if (!matchesEvery) {
         return false;
       }
@@ -66,14 +66,14 @@ module.exports.create = ({ authorizationRules, entityRepo }) => {
     return true;
   }
 
-  async function passesGrantPolicies(grantKey, req) {
+  async function passesGrantPolicies(entityType, grantKey, req) {
     if (Object.hasOwn(authorizationRules, grantKey) && authorizationRules[grantKey]) {
       const grantPolicies = authorizationRules[grantKey];
       if (typeof grantPolicies === 'boolean') {
         return true;
       }
       if (Array.isArray(grantPolicies)) {
-        const somePoliciesPass = await asyncSome(grantPolicies, async p => passesGrantPolicy(p, req));
+        const somePoliciesPass = await asyncSome(grantPolicies, async p => passesGrantPolicy(entityType, p, req));
         if (somePoliciesPass) {
           return true;
         }
@@ -90,11 +90,11 @@ module.exports.create = ({ authorizationRules, entityRepo }) => {
     const actionType = tokens[1];
     // const subActionType = tokens.length > 2 ? tokens[2] : null;
 
-    const parentGrantKey = `${entityType}:${actionType}`;
-    if (await passesGrantPolicies(grantKey, req)) {
+    if (await passesGrantPolicies(entityType, grantKey, req)) {
       return true;
     }
-    if (parentGrantKey !== grantKey && await passesGrantPolicies(parentGrantKey, req)) {
+    const parentGrantKey = `${entityType}:${actionType}`;
+    if (parentGrantKey !== grantKey && await passesGrantPolicies(entityType, parentGrantKey, req)) {
       return true;
     }
     return false;
