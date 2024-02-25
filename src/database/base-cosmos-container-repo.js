@@ -5,7 +5,9 @@ module.exports.create = (container, constructorOptions) => {
   const safeCreatePartitionValue = createPartitionValue || (v => v.id);
 
   async function getPage(pageNumber, pageSize, queryOptions) {
-    const filterTokens = Object.keys(queryOptions).map(k => `r.${k} = @${k}`);
+    const filterTokens = Object.keys(queryOptions)
+      .filter(k => !!queryOptions[k])
+      .map(k => `r.${k} = @${k}`);
 
     const optionalPartitionClause = filterTokens.length
       ? `WHERE ${filterTokens.join(', ')}`

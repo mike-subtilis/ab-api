@@ -4,7 +4,10 @@
   "subject": { "type": "string" },
 
   "tags": { "type": "array" },
-  "publicity": { "type": "string", "enum": ["private", "unlisted", "public"] },
+  "isRegional": { "type": "boolean" },
+  "isTemporal": { "type": "boolean" },
+
+  "publicity": { "type": "string", "enum": ["private", "shared-unlisted", "shared", "public"] },
 
   "questionId": { "type": "string", "format": "uuid" }
 }
