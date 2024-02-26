@@ -1,6 +1,7 @@
 const cosmos = require('@azure/cosmos');
 const baseCosmosContainerRepo = require('./base-cosmos-container-repo');
-const questionMigrations = require('./migrations/question');
+const migrations = require('./migrations/index');
+const schema = require('./schemas/index');
 
 module.exports.create = async (dbConfig) => {
   const cosmosClient = new cosmos.CosmosClient(dbConfig.cosmos);
@@ -24,20 +25,30 @@ module.exports.create = async (dbConfig) => {
       cosmosDb.container('Questions'),
       {
         partitionField: 'questionId',
-        migrations: questionMigrations.create(),
+        schema: schema.question,
+        migrations: migrations.question.create(),
       },
     ),
     answer: baseCosmosContainerRepo.create(
       cosmosDb.container('Answers'),
-      { partitionField: 'answerId' },
+      {
+        partitionField: 'answerId',
+        schema: schema.answer,
+      },
     ),
     tag: baseCosmosContainerRepo.create(
       cosmosDb.container('Tags'),
-      { partitionField: 'key' },
+      {
+        partitionField: 'key',
+        schema: schema.tag,
+      },
     ),
     user: baseCosmosContainerRepo.create(
       cosmosDb.container('Users'),
-      { partitionField: 'userId' },
+      {
+        partitionField: 'userId',
+        schema: schema.user,
+      },
     ),
   };
 };

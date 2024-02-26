@@ -1,0 +1,14 @@
+{
+  "title": "BaseEntity",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "_etag": { "type": "string" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "createdBy": { "type": "string", "format": "uuid" },
+    "createdByUserName": { "type": "string" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "updatedBy": { "type": "string", "format": "uuid" },
+    "updatedByUserName": { "type": "string" }
+  }
+}

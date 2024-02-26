@@ -1,7 +1,0 @@
-{
-  "email": { "type": "string", "format": "email" },
-  "name": { "type": "string" },
-
-  "userId": { "type": "string", "format": "uuid" },
-  "auth0UserId": { "type": "string" }
-}

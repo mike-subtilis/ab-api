@@ -1,5 +1,0 @@
-{
-  "key": { "type": "string" },
-  "questionCount": { "type": "number" },
-  "answerCount": { "type": "number" }
-}

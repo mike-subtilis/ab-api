@@ -1,0 +1,18 @@
+{
+  "title": "Question",
+  "type": "object",
+  "properties": {
+    "prefix": { "type": "string" },
+    "metric": { "type": "string" },
+    "subject": { "type": "string" },
+
+    "answerIds": { "type": "array", "items": { "type": "string", "format": "uuid" } },
+
+    "tags": { "type": "array", "items": { "type": "object" } },
+    "isRegional": { "type": "boolean" },
+    "isTemporal": { "type": "boolean" },
+
+    "publicity": { "type": "string", "enum": ["private", "shared", "public"] },
+    "isListed": { "type": "boolean" }
+  }
+}

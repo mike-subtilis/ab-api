@@ -1,6 +1,6 @@
 // asyncEvery, asyncSome adapted from https://advancedweb.hu/how-to-use-async-functions-with-array-some-and-every-in-javascript/
 
-const { intersection } = require('lodash');
+const { difference, intersection, uniq } = require('lodash');
 
 const asyncEvery = async (arr, predicate) => {
   for (let i = 0; i < arr.length; i += 1) {
@@ -29,5 +29,7 @@ module.exports = {
   asyncEvery,
   asyncFilter,
   asyncSome,
+  difference,
   intersection,
+  uniq,
 };
