@@ -10,6 +10,13 @@ module.exports.create = (constructorOptions) => {
   const router = express.Router();
   const entityRepo = repo[entityType];
 
+  router.get('/count', authorize(`${entityType}:list`), (req, res) => {
+    entityRepo.getCount(req.query, req.user)
+      .then((count) => {
+        res.json(count);
+      });
+  });
+
   router.get('/', authorize(`${entityType}:list`), (req, res) => {
     const { page = 1, pageSize = 25, ...rest } = req.query;
     entityRepo.getPage(page, pageSize, rest, req.user)

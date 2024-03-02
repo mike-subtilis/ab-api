@@ -12,8 +12,8 @@ module.exports.create = ({ repo, authorize }) => {
     (req, res) => {
       questionRepo.get(req.params.id)
         .then((q) => {
-          const existingPlusAdded = arrayUtil.uniq([...q.answerIds, ...req.body.answersToAdd]);
-          const answerIds = arrayUtil.difference(existingPlusAdded, req.body.answersToRemove || []);
+          const existingPlusAdded = arrayUtil.uniq([...(q.answerIds || []), ...(req.body.addedAnswerIds || [])]);
+          const answerIds = arrayUtil.difference(existingPlusAdded, req.body.removedAnswerIds || []);
           return questionRepo.update(
             req.params.id,
             req.query.etag,
@@ -27,6 +27,22 @@ module.exports.create = ({ repo, authorize }) => {
   );
 
   router.get('/answers', (req, res, next) => {
+    if (req.query.questionId) {
+      questionRepo.get(req.query.questionId)
+        .then((q) => {
+          delete req.query.questionId;
+          // if a question is specified and there are no answers, then 
+          // we insert a bogus answer id so that an empty array is not
+          // treated the same as not passing a parameter
+          req.query.id = q.answerIds || ['-no-answers-'];
+          next();
+        });
+    } else {
+      next();
+    }
+  });
+
+  router.get('/answers/count', (req, res, next) => {
     if (req.query.questionId) {
       questionRepo.get(req.query.questionId)
         .then((q) => {

@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const { createObject } = require('../util/objectUtil');
 
 module.exports.create = (container, constructorOptions) => {
   const {
@@ -73,33 +74,31 @@ module.exports.create = (container, constructorOptions) => {
     };
   }
 
-  /* TO DO
   async function getCount(queryOptions) {
     const filterInfo = extractFilterInfo(queryOptions);
 
-    const queryString = `SELECT COUNT(*) FROM root r
-      ${filterInfo.whereClause}
-      OFFSET ${(pageNumber - 1) * pageSize} LIMIT ${pageSize}`;
-    console.log(`Querying '${queryString}'...`);
+    const queryString = `SELECT VALUE COUNT(1) FROM root r
+      ${filterInfo.whereClause}`;
 
-    const { result: count } = await container
+    const { resources } = await container
       .items
       .query({
         query: queryString,
         parameters: [...filterInfo.params],
       })
-      .count();
+      .fetchAll();
 
+    const [count] = resources;
     return count;
   }
-  */
 
   async function getPage(pageNumber, pageSize, queryOptions) {
     const filterInfo = extractFilterInfo(queryOptions);
 
+    const sortClause = queryOptions.sort ? `ORDER BY r.${queryOptions.sort}`: '';
+    const pageClause = `OFFSET ${(pageNumber - 1) * pageSize} LIMIT ${pageSize}`;
     const queryString = `SELECT * FROM root r
-      ${filterInfo.whereClause}
-      OFFSET ${(pageNumber - 1) * pageSize} LIMIT ${pageSize}`;
+      ${filterInfo.whereClause} ${sortClause} ${pageClause}`;
     console.log(`Querying '${queryString}'...`);
 
     const { resources: results } = await container
@@ -134,6 +133,7 @@ module.exports.create = (container, constructorOptions) => {
   async function create(fields, currentUser, partitionValue) {
     const attributionDate = new Date().toISOString();
     const attributedAndIdFields = {
+      __schemaVersion: migrations ? migrations.currentSchemaVersion : 0,
       id: crypto.randomUUID(),
       ...fields,
       createdAt: attributionDate,
@@ -202,6 +202,7 @@ module.exports.create = (container, constructorOptions) => {
 
   return {
     partitionField,
+    getCount,
     getPage,
     get,
     create,
