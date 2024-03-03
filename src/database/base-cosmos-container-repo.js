@@ -1,5 +1,4 @@
 const crypto = require('crypto');
-const { createObject } = require('../util/objectUtil');
 
 module.exports.create = (container, constructorOptions) => {
   const {
@@ -95,7 +94,7 @@ module.exports.create = (container, constructorOptions) => {
   async function getPage(pageNumber, pageSize, queryOptions) {
     const filterInfo = extractFilterInfo(queryOptions);
 
-    const sortClause = queryOptions.sort ? `ORDER BY r.${queryOptions.sort}`: '';
+    const sortClause = queryOptions.sort ? `ORDER BY r.${queryOptions.sort}` : '';
     const pageClause = `OFFSET ${(pageNumber - 1) * pageSize} LIMIT ${pageSize}`;
     const queryString = `SELECT * FROM root r
       ${filterInfo.whereClause} ${sortClause} ${pageClause}`;
