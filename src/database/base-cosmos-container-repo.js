@@ -1,28 +1,110 @@
 const crypto = require('crypto');
 
 module.exports.create = (container, constructorOptions) => {
-  const { partitionField, createPartitionValue, migrations } = constructorOptions;
+  const {
+    partitionField,
+    createPartitionValue,
+    schema,
+    migrations,
+  } = constructorOptions;
   const safeCreatePartitionValue = createPartitionValue || (v => v.id);
 
-  async function getPage(pageNumber, pageSize, queryOptions) {
-    const filterTokens = Object.keys(queryOptions).map(k => `r.${k} = @${k}`);
+  function isFilterProvided(fieldDef, filterValue) {
+    switch (fieldDef.type) {
+      case 'string':
+      case 'array':
+        return (typeof filterValue === 'string' && !!filterValue)
+          || (Array.isArray(filterValue) && filterValue.length > 0);
+      case 'boolean':
+        return (typeof filterValue === 'boolean');
+      default:
+        return false;
+    }
+  }
 
-    const optionalPartitionClause = filterTokens.length
-      ? `WHERE ${filterTokens.join(', ')}`
+  function formatFilterClause(k, fieldDef, filterValue) {
+    switch (fieldDef.type) {
+      case 'string':
+        if (Array.isArray(filterValue)) {
+          return `ARRAY_CONTAINS(@${k}, r.${k})`;
+        }
+        return `CONTAINS(r.${k}, @${k}, true)`;
+
+      case 'array':
+        if (Array.isArray(filterValue)) {
+          // intersection
+          return `ARRAY_LENGTH(SetIntersect(r.${k}, @${k})) = ${filterValue.length}`;
+        }
+        return `ARRAY_CONTAINS(r.${k}, @${k})`;
+
+      case 'boolean':
+        return `r.${k} = @${k}`;
+
+      default:
+        return null;
+    }
+  }
+
+  function extractFilterInfo(queryOptions) {
+    let filterClauses;
+    if (schema) {
+      const validFilterKeys = Object.keys(schema.properties);
+      const validProvidedFilterKeys = validFilterKeys
+        .filter(k => isFilterProvided(schema.properties[k], queryOptions[k]));
+      filterClauses = validProvidedFilterKeys
+        .map(k => formatFilterClause(k, schema.properties[k], queryOptions[k]))
+        .filter(c => !!c);
+    } else {
+      filterClauses = Object.keys(queryOptions)
+        .filter(k => !!queryOptions[k])
+        .map(k => `r.${k} = @${k}`);
+    }
+
+    const optionalFilterClause = filterClauses.length
+      ? `WHERE ${filterClauses.join(' AND ')}`
       : '';
-    const optionalPartitionParam = filterTokens.length
+    const optionalFilterParam = filterClauses.length
       ? Object.keys(queryOptions).map(k => ({ name: `@${k}`, value: queryOptions[k] }))
       : [];
+
+    return {
+      whereClause: optionalFilterClause,
+      params: optionalFilterParam,
+    };
+  }
+
+  async function getCount(queryOptions) {
+    const filterInfo = extractFilterInfo(queryOptions);
+
+    const queryString = `SELECT VALUE COUNT(1) FROM root r
+      ${filterInfo.whereClause}`;
+
+    const { resources } = await container
+      .items
+      .query({
+        query: queryString,
+        parameters: [...filterInfo.params],
+      })
+      .fetchAll();
+
+    const [count] = resources;
+    return count;
+  }
+
+  async function getPage(pageNumber, pageSize, queryOptions) {
+    const filterInfo = extractFilterInfo(queryOptions);
+
+    const sortClause = queryOptions.sort ? `ORDER BY r.${queryOptions.sort}` : '';
+    const pageClause = `OFFSET ${(pageNumber - 1) * pageSize} LIMIT ${pageSize}`;
     const queryString = `SELECT * FROM root r
-      ${optionalPartitionClause}
-      OFFSET ${(pageNumber - 1) * pageSize} LIMIT ${pageSize}`;
+      ${filterInfo.whereClause} ${sortClause} ${pageClause}`;
     console.log(`Querying '${queryString}'...`);
 
     const { resources: results } = await container
       .items
       .query({
         query: queryString,
-        parameters: [...optionalPartitionParam],
+        parameters: [...filterInfo.params],
       })
       .fetchAll();
 
@@ -50,6 +132,7 @@ module.exports.create = (container, constructorOptions) => {
   async function create(fields, currentUser, partitionValue) {
     const attributionDate = new Date().toISOString();
     const attributedAndIdFields = {
+      __schemaVersion: migrations ? migrations.currentSchemaVersion : 0,
       id: crypto.randomUUID(),
       ...fields,
       createdAt: attributionDate,
@@ -118,6 +201,7 @@ module.exports.create = (container, constructorOptions) => {
 
   return {
     partitionField,
+    getCount,
     getPage,
     get,
     create,

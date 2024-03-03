@@ -1,0 +1,11 @@
+{
+  "title": "Answer",
+  "type": "object",
+  "properties": {
+    "text": { "type": "string" },
+
+    "tags": { "type": "array", "items": { "type": "string" } },
+
+    "publicity": { "type": "string", "enum": ["private", "public"] }
+  }
+}

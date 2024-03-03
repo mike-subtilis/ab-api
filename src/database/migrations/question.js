@@ -18,6 +18,8 @@ module.exports.create = () => {
   const migrations = [migrateV0V1];
 
   function migrateUp(question) {
+    if (!question) { return question; }
+
     const migrationToApply = migrations[question.__schemaVersion || 0];
     if (!migrationToApply) {
       return question;
@@ -26,7 +28,7 @@ module.exports.create = () => {
   }
 
   function migrateUpAll(question) {
-    if (question.__schemaVersion >= migrations.length) {
+    if (!question || question.__schemaVersion >= migrations.length) {
       return question;
     }
     const migrationsToApply = migrations.slice(question.__schemaVersion || 0);
@@ -37,5 +39,5 @@ module.exports.create = () => {
     );
   }
 
-  return { migrateUpAll, migrateUp };
+  return { migrateUpAll, migrateUp, currentSchemaVersion: migrations.length };
 };

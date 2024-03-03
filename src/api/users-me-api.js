@@ -1,13 +1,11 @@
 const express = require('express');
 const hardcodedAuthorizaton = require('./hardcoded-authorization.json');
-const authorizationFactory = require('./authorization-middleware');
 const authorizerFactory = require('./authorizer');
 const arrayUtil = require('../util/arrayUtil');
 
-module.exports.create = (repo) => {
+module.exports.create = ({ repo, authorize }) => {
   const router = express.Router();
   const entityRepo = repo.user;
-  const authorize = authorizationFactory.create({ authorizationRules: hardcodedAuthorizaton, repo });
 
   router.get('/', authorize('user:read:me'), (req, res) => res.json(req.user));
 
