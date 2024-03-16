@@ -1,6 +1,8 @@
 const cosmos = require('@azure/cosmos');
 const baseCosmosContainerRepo = require('./base-cosmos-container-repo');
+const baseKVRepo = require('./base-kv-in-memory-repo');
 const migrations = require('./migrations/index');
+const questionAnswerStatisticsRepo = require('./repos/question-answer-statistics-repo');
 const schema = require('./schemas/index');
 
 module.exports.create = async (dbConfig) => {
@@ -19,6 +21,9 @@ module.exports.create = async (dbConfig) => {
   await cosmosDb
     .containers
     .createIfNotExists({ id: 'Users', partitionKey: { kind: 'Hash', paths: ['/userId'] } });
+  await cosmosDb
+    .containers
+    .createIfNotExists({ id: 'QuestionAnswerStatistics', partitionKey: { kind: 'Hash', paths: ['/questionId'] } });
 
   return {
     question: baseCosmosContainerRepo.create(
@@ -50,5 +55,7 @@ module.exports.create = async (dbConfig) => {
         schema: schema.user,
       },
     ),
+    questionAnswerStatistics: questionAnswerStatisticsRepo.create(cosmosDb),
+    ballot: baseKVRepo.create(),
   };
 };

@@ -146,11 +146,11 @@ module.exports.create = (container, constructorOptions) => {
       || fields[partitionField]
       || safeCreatePartitionValue(attributedAndIdFields);
 
-    const { resource: createdUser } = await container
+    const { resource: createdItem } = await container
       .items
       .upsert(attributedAndIdFields);
 
-    return createdUser;
+    return createdItem;
   }
 
   async function update(id, eTag, fields, currentUser, partitionValue) {
