@@ -73,6 +73,16 @@ module.exports.create = (container, constructorOptions) => {
     };
   }
 
+  function extractSortClause(queryOptions) {
+    if (!queryOptions.sort) {
+      return '';
+    }
+    if (queryOptions.sort.startsWith('-')) {
+      return `ORDER BY r.${queryOptions.sort.substring(1)} DESC`;
+    }
+    return `ORDER BY r.${queryOptions.sort}`;
+  }
+
   async function getCount(queryOptions) {
     const filterInfo = extractFilterInfo(queryOptions);
 
@@ -94,7 +104,7 @@ module.exports.create = (container, constructorOptions) => {
   async function getPage(pageNumber, pageSize, queryOptions) {
     const filterInfo = extractFilterInfo(queryOptions);
 
-    const sortClause = queryOptions.sort ? `ORDER BY r.${queryOptions.sort}` : '';
+    const sortClause = extractSortClause(queryOptions);
     const pageClause = `OFFSET ${(pageNumber - 1) * pageSize} LIMIT ${pageSize}`;
     const queryString = `SELECT * FROM root r
       ${filterInfo.whereClause} ${sortClause} ${pageClause}`;

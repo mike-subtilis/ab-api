@@ -5,12 +5,12 @@ module.exports.create = (repo) => {
   const questionRepo = repo.question;
   const answerRepo = repo.answer;
   const ballotRepo = repo.ballot;
-  const questionAnswerStatisticsRepo = repo.questionAnswerStatistics;
+  const questionAnswerStatisticRepo = repo.questionAnswerStatistic;
 
   async function createBallot(questionId, user) {
     const q = await questionRepo.get(questionId);
     const selectedAnswerIds = answerUtil.selectAnswersForBallot(q.answerIds);
-
+    console.log(`creating ballot for Q: ${questionId}. A: ${selectedAnswerIds.join(', ')}...`);
     const answer0 = await answerRepo.get(selectedAnswerIds[0]);
     const answer1 = await answerRepo.get(selectedAnswerIds[1]);
 
@@ -47,8 +47,8 @@ module.exports.create = (repo) => {
 
   async function processValidatedBallot(ballot) {
     // { id, questionId, answerId, wins, losses }
-    questionAnswerStatisticsRepo.incrementWins(ballot.questionId, ballot.winningAnswerId);
-    questionAnswerStatisticsRepo.incrementLosses(ballot.questionId, ballot.losingAnswerId);
+    questionAnswerStatisticRepo.incrementWins(ballot.questionId, ballot.winningAnswerId);
+    questionAnswerStatisticRepo.incrementLosses(ballot.questionId, ballot.losingAnswerId);
   }
 
   return { createBallot, validateBallot, processValidatedBallot };

@@ -1,6 +1,7 @@
 const express = require('express');
-const arrayUtil = require('../util/arrayUtil');
-const ballotProcessorFactory = require('../domain/ballot-processor');
+const baseEntityApiFactory = require('../base-express-entity-api');
+const arrayUtil = require('../../util/arrayUtil');
+const ballotProcessorFactory = require('../../domain/ballot-processor');
 
 module.exports.create = ({ repo, authorize }) => {
   const router = express.Router();
@@ -8,14 +9,26 @@ module.exports.create = ({ repo, authorize }) => {
   const questionRepo = repo.question;
   const ballotProcessor = ballotProcessorFactory.create(repo);
 
-  router.get('/questions/:id/results',
+  router.get('/:id/results',
     authorize('question:read:vote'), // TODO: how should we permission this?
-    (req, res) => {
-      res.json([]);
+    async (req, res) => {
+      const qaStats = await repo.questionAnswerStatistic.getPage(1,
+        10,
+        { questionId: req.params.id, sort: '-wins' });
+      const answerIds = qaStats.map(s => s.answerId);
+      const answers = await repo.answer.getPage(1, 10, { id: answerIds });
+      const nameValues = qaStats.map((qaStats) => {
+        const answer = answers.find(a => a.id === qaStats.answerId);
+        return {
+          name: answer ? answer.text : 'Unknown',
+          value: qaStats.wins,
+        };
+      });
+      res.json(nameValues);
     });
 
   router.put(
-    '/questions/:id/update-answers',
+    '/:id/update-answers',
     authorize('question:update:updateanswers'),
     (req, res) => {
       questionRepo.get(req.params.id)
@@ -35,7 +48,7 @@ module.exports.create = ({ repo, authorize }) => {
   );
 
   router.post(
-    '/questions/:id/request-ballot',
+    '/:id/request-ballot',
     authorize('question:read:vote'), // TODO: how should we permission this?
     async (req, res) => {
       const hydratedBallot = await ballotProcessor.createBallot(req.params.id, req.user);
@@ -44,7 +57,7 @@ module.exports.create = ({ repo, authorize }) => {
   );
 
   router.post(
-    '/questions/:id/return-ballot',
+    '/:id/return-ballot',
     authorize('question:read:vote'), // TODO: how should we permission this?
     async (req, res) => {
       const validatedBallot = await ballotProcessor.validateBallot(
@@ -61,24 +74,7 @@ module.exports.create = ({ repo, authorize }) => {
     },
   );
 
-  function handleQuestionIdParam(req, res, next) {
-    if (req.query.questionId) {
-      questionRepo.get(req.query.questionId)
-        .then((q) => {
-          delete req.query.questionId;
-          // if a question is specified and there are no answers, then
-          // we insert a bogus answer id so that an empty array is not
-          // treated the same as not passing a parameter
-          req.query.id = q && q.answerIds ? q.answerIds : ['-no-answers-'];
-          next();
-        });
-    } else {
-      next();
-    }
-  }
-
-  router.get('/answers', handleQuestionIdParam);
-  router.get('/answers/count', handleQuestionIdParam);
+  router.use('/', baseEntityApiFactory.create({ repo, authorize, entityType: 'question' }));
 
   return router;
 };
