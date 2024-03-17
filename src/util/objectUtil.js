@@ -1,3 +1,5 @@
+const { omit, pick } = require('lodash');
+
 const createObject = (keys, values) => {
   const createdObject = {};
 
@@ -8,4 +10,4 @@ const createObject = (keys, values) => {
   return createdObject;
 };
 
-module.exports = { createObject };
+module.exports = { createObject, omit, pick };
