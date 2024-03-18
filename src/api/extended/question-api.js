@@ -3,7 +3,7 @@ const baseEntityApiFactory = require('../base-express-entity-api');
 const arrayUtil = require('../../util/arrayUtil');
 const ballotProcessorFactory = require('../../domain/ballot-processor');
 
-module.exports.create = ({ repo, authorize }) => {
+module.exports.create = ({ repo, authorize, options }) => {
   const router = express.Router();
 
   const questionRepo = repo.question;
@@ -63,7 +63,7 @@ module.exports.create = ({ repo, authorize }) => {
       const validatedBallot = await ballotProcessor.validateBallot(
         req.body.id,
         req.params.id,
-        req.user.id,
+        req.user?.id || '',
         req.body.vote,
       );
 
@@ -74,7 +74,8 @@ module.exports.create = ({ repo, authorize }) => {
     },
   );
 
-  router.use('/', baseEntityApiFactory.create({ repo, authorize, entityType: 'question' }));
+  router.use('/',
+    baseEntityApiFactory.create({ repo, authorize, entityType: 'question', options: { readOnly: options?.isAnonymous } }));
 
   return router;
 };
