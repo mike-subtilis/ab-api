@@ -1,7 +1,7 @@
 const express = require('express');
 const baseEntityApiFactory = require('../base-express-entity-api');
 
-module.exports.create = ({ repo, authorize }) => { 
+module.exports.create = ({ repo, authorize, options }) => { 
   const router = express.Router();
 
   const questionRepo = repo.question;
@@ -25,7 +25,8 @@ module.exports.create = ({ repo, authorize }) => {
   router.get('/', handleQuestionIdParam);
   router.get('/count', handleQuestionIdParam);
 
-  router.use('/', baseEntityApiFactory.create({ repo, authorize, entityType: 'answer' }));
+  router.use('/',
+    baseEntityApiFactory.create({ repo, authorize, entityType: 'answer', options: { readOnly: options?.isAnonymous } }));
 
   return router;
 };

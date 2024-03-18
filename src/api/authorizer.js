@@ -21,7 +21,11 @@ module.exports.create = ({ authorizationRules, repo }) => {
     }
     const operands = [];
     if (m.user) {
-      operands.push(req.user[m.user]);
+      if (req.user) {
+        operands.push(req.user[m.user]);
+      } else {
+        operands.push('anonymous');
+      }
     }
     if (m.fixed) {
       operands.push(m.fixed);

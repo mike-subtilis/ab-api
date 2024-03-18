@@ -1,5 +1,6 @@
 const express = require('express');
-const baseEntityApiFactory = require('./base-express-entity-api');
+const questionApiFactory = require('./extended/question-api');
+const answerApiFactory = require('./extended/answer-api');
 
 module.exports.create = ({ repo, authorize }) => {
   const router = express.Router();
@@ -7,22 +8,12 @@ module.exports.create = ({ repo, authorize }) => {
   // TODO: add restrictions to only "publicity: public" q & a
   router.use(
     '/questions',
-    baseEntityApiFactory.create({
-      repo,
-      authorize,
-      entityType: 'question',
-      options: { readOnly: true },
-    }),
+    questionApiFactory.create({ repo, authorize, options: { isAnonymous: true }}),
   );
 
   router.use(
     '/answers',
-    baseEntityApiFactory.create({
-      repo,
-      authorize,
-      entityType: 'answer',
-      options: { readOnly: true },
-    }),
+    answerApiFactory.create({ repo, authorize, options: { isAnonymous: true }}),
   );
 
   return router;
