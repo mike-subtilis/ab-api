@@ -1,0 +1,43 @@
+{
+  "user:list": [
+    {
+      "name": "users can see other users names",
+      "matches": true,
+      "fields": ["id", "name"]
+    }
+  ],
+  "user:read": [
+    {
+      "name": "users can see other users names",
+      "matches": true,
+      "fields": ["id", "name"]
+    }
+  ],
+  "user:read:me": false,
+  "user:create": false,
+  "user:update": false,
+  "user:update:me": false,
+  "user:delete": false,
+
+  "question:list": [
+    {
+      "name": "anonymous users can read anonymous questions",
+      "matches": [{ "target": "publicity", "fixed": "anonymous" }]
+    }
+  ],
+  "question:read": [
+    {
+      "name": "anonymous users can read anonymous questions",
+      "matches": [{ "target": "publicity", "fixed": "anonymous" }]
+    }
+  ],
+  "question:create": false,
+  "question:update": false,
+  "question:delete": false,
+
+  "answer:list": true,
+  "answer:read": true,
+  "answer:create": false,
+  "answer:update": false,
+  "answer:delete": false
+}
