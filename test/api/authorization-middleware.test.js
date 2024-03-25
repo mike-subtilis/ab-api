@@ -15,7 +15,9 @@ describe('authorization-middleware.create()', () => {
     test('constructor with authorizationRules and entityRepo should create', () => {
       const sut = sutFactory.create({ authorizationRules: {}, repo: {} });
       expect(sut).toBeDefined();
-      expect(typeof sut).toBe('function');
+      expect(typeof sut).toBe('object');
+      expect(typeof sut.check).toBe('function');
+      expect(typeof sut.filter).toBe('function');
     });
   });
 
@@ -45,7 +47,7 @@ describe('authorization-middleware.create()', () => {
     });
 
     test('undefined grant should fail', (done) => {
-      const middleware = sut('sample:something');
+      const middleware = sut.check('sample:something');
 
       middleware({}, {}, (nextErr) => {
         try {
@@ -59,7 +61,7 @@ describe('authorization-middleware.create()', () => {
     });
 
     test('users can read any sample', (done) => {
-      const middleware = sut('sample:read');
+      const middleware = sut.check('sample:read');
 
       middleware({ user: { id: 'user-1' }, params: { id: '999' } },
         {},
@@ -74,7 +76,7 @@ describe('authorization-middleware.create()', () => {
     });
 
     test('users can update their own samples', (done) => {
-      const middleware = sut('sample:update');
+      const middleware = sut.check('sample:update');
 
       middleware({ user: { id: 'user-1' }, params: { id: '1' } },
         {},
@@ -89,7 +91,7 @@ describe('authorization-middleware.create()', () => {
     });
 
     test('users cant update other users samples', (done) => {
-      const middleware = sut('sample:update');
+      const middleware = sut.check('sample:update');
 
       middleware({ user: { id: 'user-1' }, params: { id: '2' } },
         {},
@@ -105,7 +107,7 @@ describe('authorization-middleware.create()', () => {
     });
 
     test('users cant update non-existant samples', (done) => {
-      const middleware = sut('sample:update');
+      const middleware = sut.check('sample:update');
 
       middleware({ user: { id: 'user-1' }, params: { id: '999' } },
         {},

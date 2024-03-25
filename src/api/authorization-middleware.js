@@ -1,6 +1,7 @@
-const authorizerFactory = require('./authorizer');
+const authorizationCheckerFactory = require('./authorizationChecker');
+const authorizationFilterGeneratorFactory = require('./authorizationFilterer');
 
-module.exports.create = ({ authorizationRules, repo }) => {
+module.exports.create = ({ authorizationRules, repo, logger }) => {
   if (!authorizationRules) {
     throw new Error('Authorization Rules are required to set up the authorization-middleware');
   }
@@ -8,20 +9,34 @@ module.exports.create = ({ authorizationRules, repo }) => {
     throw new Error('Repo is required to set up the authorization-middleware');
   }
 
-  const authorizer = authorizerFactory.create({ authorizationRules, repo });
+  const authorizationChecker = authorizationCheckerFactory.create({ authorizationRules, repo });
+  const authorizationFilterer = authorizationFilterGeneratorFactory.create({ authorizationRules });
 
-  return grantKey => (async (req, res, next) => {
-    console.log(`checking permission for ${grantKey}...`);
+  return {
+    check: grantKey => (async (req, res, next) => {
+      logger.trace(`checking permission for ${grantKey}...`);
 
-    try {
-      const isAuthorized = await authorizer.hasGrant(grantKey, req);
-      if (isAuthorized) {
-        next();
-      } else {
-        next(new Error(`You do not have '${grantKey}' access to this endpoint`));
+      try {
+        const isAuthorized = await authorizationChecker.hasGrant(grantKey, req);
+        if (isAuthorized) {
+          next();
+        } else {
+          next(new Error(`You do not have '${grantKey}' access to this endpoint`));
+        }
+      } catch (ex) {
+        next(ex);
       }
-    } catch (ex) {
-      next(ex);
-    }
-  });
+    }),
+    filter: grantKey => (async (req, res, next) => {
+      logger.trace(`adding filters for ${grantKey}...`);
+
+      try {
+        const filters = authorizationFilterer.getListFilters(grantKey, req.user);
+        req.authorization = filters;
+        next();
+      } catch (ex) {
+        next(ex);
+      }
+    }),
+  };
 };

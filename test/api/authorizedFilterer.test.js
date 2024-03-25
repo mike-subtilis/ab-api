@@ -1,4 +1,4 @@
-const sutFactory = require('../../src/api/authorizationFilterGenerator');
+const sutFactory = require('../../src/api/authorizationFilterer');
 
 describe('authorizedFilterGenerator', () => {
   describe('User vs Target rule', () => {
@@ -126,14 +126,24 @@ describe('authorizedFilterGenerator', () => {
       sut = sutFactory.create({ authorizationRules: mockRules });
     });
 
-    test('paying users can list everything', () => {
+    test('paying users can list all foos', () => {
       const result = sut.getListFilters('foo:list', { id: 'mock-user-1', isPaying: true });
       expect(result).toEqual([]);
     });
 
-    test('non-paying users can\'t list anything', () => {
+    test('non-paying users can\'t list any foos', () => {
       const user2 = { id: 'mock-user-2', isPaying: false };
       expect(() => sut.getListFilters('foo:list', user2)).toThrow(Error);
+    });
+
+    test('paying users can list all bars with 1 baz or 2 baz', () => {
+      const result = sut.getListFilters('bar:list', { id: 'mock-user-1', isPaying: true });
+      expect(result).toEqual([{ baz: 1 }, { baz: 2 }]);
+    });
+
+    test('non-paying users can list all bars with 2 baz', () => {
+      const result = sut.getListFilters('bar:list', { id: 'mock-user-2', isPaying: false });
+      expect(result).toEqual([{ baz: 2 }]);
     });
   });
 });

@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 
-module.exports.create = (container, constructorOptions) => {
+module.exports.create = (container, constructorOptions, logger) => {
   const {
     partitionField,
     createPartitionValue,
@@ -108,7 +108,7 @@ module.exports.create = (container, constructorOptions) => {
     const pageClause = `OFFSET ${(pageNumber - 1) * pageSize} LIMIT ${pageSize}`;
     const queryString = `SELECT * FROM root r
       ${filterInfo.whereClause} ${sortClause} ${pageClause}`;
-    console.log(`Querying '${queryString}'...`);
+    logger.trace(`Querying '${queryString}'...`);
 
     const { resources: results } = await container
       .items

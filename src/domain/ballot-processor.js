@@ -1,7 +1,7 @@
 const { pick } = require('../util/objectUtil');
 const answerUtil = require('./answer-util');
 
-module.exports.create = (repo) => {
+module.exports.create = (repo, logger) => {
   const questionRepo = repo.question;
   const answerRepo = repo.answer;
   const ballotRepo = repo.ballot;
@@ -10,7 +10,7 @@ module.exports.create = (repo) => {
   async function createBallot(questionId, user) {
     const q = await questionRepo.get(questionId);
     const selectedAnswerIds = answerUtil.selectAnswersForBallot(q.answerIds);
-    console.log(`creating ballot for Q: ${questionId}. A: ${selectedAnswerIds.join(', ')}...`);
+    logger.trace(`creating ballot for Q: ${questionId}. A: ${selectedAnswerIds.join(', ')}...`);
     const answer0 = await answerRepo.get(selectedAnswerIds[0]);
     const answer1 = await answerRepo.get(selectedAnswerIds[1]);
 

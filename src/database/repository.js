@@ -5,7 +5,7 @@ const migrations = require('./migrations/index');
 const questionAnswerStatisticRepo = require('./repos/question-answer-statistic-repo');
 const schema = require('./schemas/index');
 
-module.exports.create = async (dbConfig) => {
+module.exports.create = async (dbConfig, logger) => {
   const cosmosClient = new cosmos.CosmosClient(dbConfig.cosmos);
   const cosmosDb = cosmosClient.database(dbConfig.cosmos.dbId);
 
@@ -33,6 +33,7 @@ module.exports.create = async (dbConfig) => {
         schema: schema.question,
         migrations: migrations.question.create(),
       },
+      logger,
     ),
     answer: baseCosmosContainerRepo.create(
       cosmosDb.container('Answers'),
@@ -40,6 +41,7 @@ module.exports.create = async (dbConfig) => {
         partitionField: 'answerId',
         schema: schema.answer,
       },
+      logger,
     ),
     tag: baseCosmosContainerRepo.create(
       cosmosDb.container('Tags'),
@@ -47,6 +49,7 @@ module.exports.create = async (dbConfig) => {
         partitionField: 'key',
         schema: schema.tag,
       },
+      logger,
     ),
     user: baseCosmosContainerRepo.create(
       cosmosDb.container('Users'),
@@ -54,8 +57,9 @@ module.exports.create = async (dbConfig) => {
         partitionField: 'userId',
         schema: schema.user,
       },
+      logger,
     ),
-    questionAnswerStatistic: questionAnswerStatisticRepo.create(cosmosDb),
-    ballot: baseKVRepo.create(),
+    questionAnswerStatistic: questionAnswerStatisticRepo.create(cosmosDb, logger),
+    ballot: baseKVRepo.create(logger),
   };
 };

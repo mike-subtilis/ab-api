@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 
-module.exports.create = () => {
+module.exports.create = () => { // also passed: logger
   const kvStore = {};
 
   async function get(id) {

@@ -1,5 +1,3 @@
-const { asyncEvery, asyncSome, intersection } = require('../util/arrayUtil');
-
 module.exports.create = ({ authorizationRules }) => {
   function getMatchFilter(m, user) {
     // m = { user, target, fixed }
@@ -49,9 +47,8 @@ module.exports.create = ({ authorizationRules }) => {
           return []; // at least 1 policy filter allows unfiltered access
         }
         return allPolicyFilters.filter(pf => typeof pf === 'object');
-      } else {
-        throw new Error(`Grant policies for ${grantKey} are not well defined`);
       }
+      throw new Error(`Grant policies for ${grantKey} are not well defined`);
     }
     throw new Error(`This user is not able to list ${entityType} with the current ${grantKey} rules.`);
   }
