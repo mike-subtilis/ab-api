@@ -22,27 +22,52 @@ module.exports.create = (container, constructorOptions, logger) => {
     }
   }
 
-  function formatFilterClause(k, fieldDef, filterValue) {
+  function formatFilterClause(k, fieldDef, filterValue, useFilterValueParams = true) {
+    const renderedFilterValue = useFilterValueParams
+      ? `@${k}`
+      : `${JSON.stringify(filterValue)}`;
     switch (fieldDef.type) {
       case 'string':
         if (Array.isArray(filterValue)) {
-          return `ARRAY_CONTAINS(@${k}, r.${k})`;
+          return `ARRAY_CONTAINS(${renderedFilterValue}, r.${k})`;
         }
-        return `CONTAINS(r.${k}, @${k}, true)`;
+        return `CONTAINS(r.${k}, ${renderedFilterValue}, true)`;
 
       case 'array':
         if (Array.isArray(filterValue)) {
           // intersection
-          return `ARRAY_LENGTH(SetIntersect(r.${k}, @${k})) = ${filterValue.length}`;
+          return `ARRAY_LENGTH(SetIntersect(r.${k}, ${renderedFilterValue})) = ${filterValue.length}`;
         }
-        return `ARRAY_CONTAINS(r.${k}, @${k})`;
+        return `ARRAY_CONTAINS(r.${k}, ${renderedFilterValue})`;
 
       case 'boolean':
-        return `r.${k} = @${k}`;
+        return `r.${k} = ${renderedFilterValue}`;
 
       default:
         return null;
     }
+  }
+
+  function renderAuthorizationFilter(authorizationFilter) {
+    const filterComponents = Object
+      .keys(authorizationFilter)
+      .map((k) => {
+        if (schema) {
+          return formatFilterClause(k, schema.properties[k], authorizationFilter[k], false);
+        }
+        return `r.${k} = ${JSON.stringify(authorizationFilter[k])}`;
+      });
+    return `(${filterComponents.join(' AND ')})`;
+  }
+
+  function extractAuthorizationFilterClause(authorizationFilters) {
+    if (!authorizationFilters || authorizationFilters.length === 0) {
+      return null;
+    }
+
+    const authorizationOptions = authorizationFilters.map(f => renderAuthorizationFilter(f));
+    const combinedAuthorizationOptions = authorizationOptions.join(' OR ');
+    return `(${combinedAuthorizationOptions})`;
   }
 
   function extractFilterInfo(queryOptions) {
@@ -60,8 +85,13 @@ module.exports.create = (container, constructorOptions, logger) => {
         .map(k => `r.${k} = @${k}`);
     }
 
-    const optionalFilterClause = filterClauses.length
-      ? `WHERE ${filterClauses.join(' AND ')}`
+    const authorizationFilterClause = extractAuthorizationFilterClause(queryOptions.authorizationFilters);
+    const allFilterClauses = authorizationFilterClause
+      ? [...filterClauses, authorizationFilterClause]
+      : filterClauses;
+
+    const optionalFilterClause = allFilterClauses.length
+      ? `WHERE ${allFilterClauses.join(' AND ')}`
       : '';
     const optionalFilterParam = filterClauses.length
       ? Object.keys(queryOptions).map(k => ({ name: `@${k}`, value: queryOptions[k] }))

@@ -29,7 +29,7 @@ module.exports.create = ({ repo, authorizer }) => {
       .then(validKeys => res.json(validKeys));
   });
 
-  router.put('/', authorizer('user:update:me'), (req, res) => {
+  router.put('/', authorizer.check('user:update:me'), (req, res) => {
     entityRepo.update(req.user.id, req.query.etag, req.body, req.user, req.query[entityRepo.partitionField])
       .then((results) => {
         res.json(results);

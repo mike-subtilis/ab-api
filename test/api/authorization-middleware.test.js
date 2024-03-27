@@ -1,4 +1,5 @@
 const sutFactory = require('../../src/api/authorization-middleware');
+const loggerFactory = require('../../src/util/logger');
 
 describe('authorization-middleware.create()', () => {
   describe('basic constructor', () => {
@@ -13,7 +14,7 @@ describe('authorization-middleware.create()', () => {
     });
 
     test('constructor with authorizationRules and entityRepo should create', () => {
-      const sut = sutFactory.create({ authorizationRules: {}, repo: {} });
+      const sut = sutFactory.create({ authorizationRules: {}, repo: {}, logger: loggerFactory.chompLogger });
       expect(sut).toBeDefined();
       expect(typeof sut).toBe('object');
       expect(typeof sut.check).toBe('function');
@@ -43,7 +44,7 @@ describe('authorization-middleware.create()', () => {
         11: { id: 11, name: 'mock-11', fieldInt: 11.11, createdBy: 'user-1' },
       };
       const sampleMockRepo = { get: id => sampleEntities[id] };
-      sut = sutFactory.create({ authorizationRules: mockRules, repo: { sample: sampleMockRepo } });
+      sut = sutFactory.create({ authorizationRules: mockRules, repo: { sample: sampleMockRepo }, logger: loggerFactory.chompLogger });
     });
 
     test('undefined grant should fail', (done) => {

@@ -32,7 +32,7 @@ module.exports.create = ({ authorizationRules, repo, logger }) => {
 
       try {
         const filters = authorizationFilterer.getListFilters(grantKey, req.user);
-        req.authorization = filters;
+        req.authorizationFilters = filters;
         next();
       } catch (ex) {
         next(ex);

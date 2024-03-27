@@ -2,7 +2,7 @@ const consoleOutput = (message, level) => {
   const messageOutput = typeof message === 'string'
     ? message
     : JSON.stringify(message);
-  const lev = level.toUpper();
+  const lev = level.toUpperCase();
   const ts = new Date().toISOString();
   console.log(`${ts} [${lev}] ${messageOutput}`); // eslint-disable-line no-console
 };

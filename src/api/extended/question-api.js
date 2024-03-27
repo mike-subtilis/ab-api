@@ -7,11 +7,11 @@ module.exports.create = ({ repo, authorizer, options, logger }) => {
   const router = express.Router();
 
   const questionRepo = repo.question;
-  const ballotProcessor = ballotProcessorFactory.create(repo);
+  const ballotProcessor = ballotProcessorFactory.create(repo, logger);
 
   router.get(
     '/:id/results',
-    authorizer.check('question:read:vote'), // TODO: how should we permission this?
+    authorizer.check('question:read'),
     async (req, res) => {
       const qaStats = await repo.questionAnswerStatistic.getPage(
         1,
@@ -53,7 +53,7 @@ module.exports.create = ({ repo, authorizer, options, logger }) => {
 
   router.post(
     '/:id/request-ballot',
-    authorizer.check('question:read:vote'), // TODO: how should we permission this?
+    authorizer.check('question:read:vote'),
     async (req, res) => {
       const hydratedBallot = await ballotProcessor.createBallot(req.params.id, req.user);
       res.json(hydratedBallot);
@@ -62,7 +62,7 @@ module.exports.create = ({ repo, authorizer, options, logger }) => {
 
   router.post(
     '/:id/return-ballot',
-    authorizer.check('question:read:vote'), // TODO: how should we permission this?
+    authorizer.check('question:read:vote'),
     async (req, res) => {
       const validatedBallot = await ballotProcessor.validateBallot(
         req.body.id,
