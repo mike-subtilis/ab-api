@@ -1,7 +1,7 @@
 const baseCosmosContainerRepo = require('../base-cosmos-container-repo');
 const questionAnswerStatisticSchema = require('../schemas/questionAnswerStatistic.json');
 
-module.exports.create = (cosmosDb) => {
+module.exports.create = (cosmosDb, logger) => {
   const container = cosmosDb.container('QuestionAnswerStatistics');
   const baseRepo = baseCosmosContainerRepo.create(
     container,
@@ -9,6 +9,7 @@ module.exports.create = (cosmosDb) => {
       partitionField: 'questionId',
       schema: questionAnswerStatisticSchema,
     },
+    logger,
   );
 
   async function incrementWinsOrLosses(questionId, answerId, winsOrLosses) {

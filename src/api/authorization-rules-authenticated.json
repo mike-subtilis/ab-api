@@ -29,7 +29,16 @@
   ],
   "user:delete": false,
 
-  "question:list": true,
+  "question:list": [
+    {
+      "name": "users can list their own questions",
+      "matches": [{ "user": "id", "target": "createdBy" }]
+    },
+    {
+      "name": "users can read public & anonymous questions",
+      "matches": [{ "target": "publicity", "fixed": ["public", "anonymous"] }]
+    }
+  ],
   "question:read": [
     {
       "name": "users can read their own questions",
@@ -37,7 +46,7 @@
     },
     {
       "name": "users can read public questions",
-      "matches": [{ "target": "publicity", "fixed": "public" }]
+      "matches": [{ "target": "publicity", "fixed": ["public", "anonymous"] }]
     }
   ],
   "question:create": true,
@@ -46,6 +55,22 @@
       "name": "users can update their own questions",
       "matches": [
         { "user": "id", "target": "createdBy" }
+      ]
+    }
+  ],
+  "question:update:update-answers": [
+    {
+      "name": "users can update answers to their own questions",
+      "matches": [
+        { "user": "id", "target": "createdBy" }
+      ]
+    }
+  ],
+  "question:update:add-answers": [
+    {
+      "name": "users can update answers to questions that allow it",
+      "matches": [
+        { "target": "permissionToAddAnswers", "fixed": "public" }
       ]
     }
   ],

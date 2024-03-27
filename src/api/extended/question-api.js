@@ -3,33 +3,38 @@ const baseEntityApiFactory = require('../base-express-entity-api');
 const arrayUtil = require('../../util/arrayUtil');
 const ballotProcessorFactory = require('../../domain/ballot-processor');
 
-module.exports.create = ({ repo, authorize, options }) => {
+module.exports.create = ({ repo, authorizer, options, logger }) => {
   const router = express.Router();
 
   const questionRepo = repo.question;
-  const ballotProcessor = ballotProcessorFactory.create(repo);
+  const ballotProcessor = ballotProcessorFactory.create(repo, logger);
 
-  router.get('/:id/results',
-    authorize('question:read:vote'), // TODO: how should we permission this?
+  router.get(
+    '/:id/results',
+    authorizer.check('question:read'),
     async (req, res) => {
-      const qaStats = await repo.questionAnswerStatistic.getPage(1,
-        10,
-        { questionId: req.params.id, sort: '-wins' });
+      const resultsCount = req.query.count ? Number(req.query.count) : 10;
+      const qaStats = await repo.questionAnswerStatistic.getPage(
+        1,
+        resultsCount,
+        { questionId: req.params.id, sort: '-wins' },
+      );
       const answerIds = qaStats.map(s => s.answerId);
-      const answers = await repo.answer.getPage(1, 10, { id: answerIds });
-      const nameValues = qaStats.map((qaStats) => {
-        const answer = answers.find(a => a.id === qaStats.answerId);
+      const answers = await repo.answer.getPage(1, resultsCount, { id: answerIds });
+      const nameValues = qaStats.map((qaStat) => {
+        const answer = answers.find(a => a.id === qaStat.answerId);
         return {
           name: answer ? answer.text : 'Unknown',
-          value: qaStats.wins,
+          value: qaStat.wins,
         };
       });
       res.json(nameValues);
-    });
+    },
+  );
 
   router.put(
     '/:id/update-answers',
-    authorize('question:update:updateanswers'),
+    authorizer.check('question:update:update-answers'),
     (req, res) => {
       questionRepo.get(req.params.id)
         .then((q) => {
@@ -49,7 +54,7 @@ module.exports.create = ({ repo, authorize, options }) => {
 
   router.post(
     '/:id/request-ballot',
-    authorize('question:read:vote'), // TODO: how should we permission this?
+    authorizer.check('question:read:vote'),
     async (req, res) => {
       const hydratedBallot = await ballotProcessor.createBallot(req.params.id, req.user);
       res.json(hydratedBallot);
@@ -58,7 +63,7 @@ module.exports.create = ({ repo, authorize, options }) => {
 
   router.post(
     '/:id/return-ballot',
-    authorize('question:read:vote'), // TODO: how should we permission this?
+    authorizer.check('question:read:vote'),
     async (req, res) => {
       const validatedBallot = await ballotProcessor.validateBallot(
         req.body.id,
@@ -74,8 +79,10 @@ module.exports.create = ({ repo, authorize, options }) => {
     },
   );
 
-  router.use('/',
-    baseEntityApiFactory.create({ repo, authorize, entityType: 'question', options: { readOnly: options?.isAnonymous } }));
+  router.use(
+    '/',
+    baseEntityApiFactory.create({ repo, authorizer, entityType: 'question', options: { readOnly: options?.isAnonymous }, logger }),
+  );
 
   return router;
 };
