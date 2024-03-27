@@ -13,13 +13,14 @@ module.exports.create = ({ repo, authorizer, options, logger }) => {
     '/:id/results',
     authorizer.check('question:read'),
     async (req, res) => {
+      const resultsCount = req.query.count ? Number(req.query.count) : 10;
       const qaStats = await repo.questionAnswerStatistic.getPage(
         1,
-        10,
+        resultsCount,
         { questionId: req.params.id, sort: '-wins' },
       );
       const answerIds = qaStats.map(s => s.answerId);
-      const answers = await repo.answer.getPage(1, 10, { id: answerIds });
+      const answers = await repo.answer.getPage(1, resultsCount, { id: answerIds });
       const nameValues = qaStats.map((qaStat) => {
         const answer = answers.find(a => a.id === qaStat.answerId);
         return {
@@ -33,7 +34,7 @@ module.exports.create = ({ repo, authorizer, options, logger }) => {
 
   router.put(
     '/:id/update-answers',
-    authorizer.check('question:update:updateanswers'),
+    authorizer.check('question:update:update-answers'),
     (req, res) => {
       questionRepo.get(req.params.id)
         .then((q) => {

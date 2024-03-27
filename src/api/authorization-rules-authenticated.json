@@ -58,6 +58,22 @@
       ]
     }
   ],
+  "question:update:update-answers": [
+    {
+      "name": "users can update answers to their own questions",
+      "matches": [
+        { "user": "id", "target": "createdBy" }
+      ]
+    }
+  ],
+  "question:update:add-answers": [
+    {
+      "name": "users can update answers to questions that allow it",
+      "matches": [
+        { "target": "permissionToAddAnswers", "fixed": "public" }
+      ]
+    }
+  ],
   "question:delete": [
     {
       "name": "users can delete their own questions",
