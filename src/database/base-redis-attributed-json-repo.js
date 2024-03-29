@@ -1,11 +1,16 @@
 const crypto = require('crypto');
 
-module.exports.create = (client, entityType) => { // also passed: logger
+module.exports.create = (client, configuration) => { // also passed: logger
+  const { entityType, expiry } = configuration;
+
   function getRedisKey(key) {
-    if (key.startsWith(`${entityType}:`)) {
-      return key;
+    if (entityType) {
+      if (key.startsWith(`${entityType}:`)) {
+        return key;
+      }
+      return `${entityType}:${key}`;
     }
-    return `${entityType}:${key}`;
+    return key;
   }
 
   async function get(id) {
@@ -27,7 +32,10 @@ module.exports.create = (client, entityType) => { // also passed: logger
       updatedByUserName: currentUser?.name,
     };
 
-    await client.json.set(attributedAndIdFields.id, '$', attributedAndIdFields);
+    await client.json.set(redisKey, '$', attributedAndIdFields);
+    if (expiry) {
+      await client.expire(redisKey, expiry);
+    }
     return attributedAndIdFields;
   }
 
@@ -50,6 +58,9 @@ module.exports.create = (client, entityType) => { // also passed: logger
     };
 
     await client.json.set(redisKey, '$', updatedFields);
+    if (expiry) {
+      await client.expire(redisKey, expiry);
+    }
 
     return updatedFields;
   }
