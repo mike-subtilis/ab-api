@@ -1,0 +1,11 @@
+{
+  "title": "QuestionStatistic",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+
+    "questionId": { "type": "string" },
+    "votes": { "type": "number" }
+  }
+}

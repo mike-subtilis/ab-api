@@ -1,11 +1,14 @@
+const crypto = require('crypto');
 const { pick } = require('../util/objectUtil');
 const answerUtil = require('./answer-util');
 
 module.exports.create = (repo, logger) => {
   const questionRepo = repo.question;
   const answerRepo = repo.answer;
-  const ballotRepo = repo.ballot;
+  const ballotKVStore = repo.ballot;
   const questionAnswerStatisticRepo = repo.questionAnswerStatistic;
+  const questionAnswerUserStatisticRepo = repo.questionAnswerUserStatistic;
+  const questionStatisticRepo = repo.questionStatistic;
 
   async function createBallot(questionId, user) {
     const q = await questionRepo.get(questionId);
@@ -14,8 +17,14 @@ module.exports.create = (repo, logger) => {
     const answer0 = await answerRepo.get(selectedAnswerIds[0]);
     const answer1 = await answerRepo.get(selectedAnswerIds[1]);
 
-    const persistedBallot = { questionId: q.id, userId: user?.id || '', answerIds: [answer0.id, answer1.id] };
-    const savedBallot = await ballotRepo.create(persistedBallot, user);
+    const persistedBallot = {
+      id: crypto.randomUUID(),
+      questionId: q.id,
+      userId: user?.id || '',
+      answerIds: [answer0.id, answer1.id],
+      createdAt: (new Date()).toISOString(),
+    };
+    const savedBallot = await ballotKVStore.set(persistedBallot.id, persistedBallot);
     const hydratedBallot = {
       id: savedBallot.id,
       answers: [answer0, answer1].map(a => pick(a, ['text'])),
@@ -25,8 +34,11 @@ module.exports.create = (repo, logger) => {
   }
 
   async function validateBallot(ballotId, questionId, userId, voteIndex) {
-    const existingBallot = await ballotRepo.get(ballotId);
+    const existingBallot = await ballotKVStore.pop(ballotId);
 
+    if (!existingBallot) {
+      throw new Error('This ballot does not exist');
+    }
     if (existingBallot.questionId !== questionId) {
       throw new Error('This ballot is for a different question');
     }
@@ -49,6 +61,11 @@ module.exports.create = (repo, logger) => {
     // { id, questionId, answerId, wins, losses }
     questionAnswerStatisticRepo.incrementWins(ballot.questionId, ballot.winningAnswerId);
     questionAnswerStatisticRepo.incrementLosses(ballot.questionId, ballot.losingAnswerId);
+
+    questionAnswerUserStatisticRepo.incrementWins(ballot.questionId, ballot.winningAnswerId, ballot.userId);
+    questionAnswerUserStatisticRepo.incrementLosses(ballot.questionId, ballot.losingAnswerId, ballot.userId);
+
+    questionStatisticRepo.incrementVotes(ballot.questionId);
   }
 
   return { createBallot, validateBallot, processValidatedBallot };
