@@ -49,6 +49,16 @@
       "matches": [{ "target": "publicity", "fixed": ["public", "anonymous"] }]
     }
   ],
+  "question:read:my-results": [
+    {
+      "name": "users can read their own questions",
+      "matches": [{ "user": "id", "target": "createdBy" }]
+    },
+    {
+      "name": "users can read public questions",
+      "matches": [{ "target": "publicity", "fixed": ["public", "anonymous"] }]
+    }
+  ],
   "question:create": true,
   "question:update": [
     {

@@ -38,6 +38,31 @@ module.exports.create = ({ repo, authorizer, options, logger }) => {
     },
   );
 
+  router.get(
+    '/:id/my-results',
+    authorizer.check('question:read:my-results'),
+    async (req, res) => {
+      const resultsCount = req.query.count ? Number(req.query.count) : 10;
+      const qauStats = await repo.questionAnswerUserStatistic.getPage(
+        1,
+        resultsCount,
+        { questionId: req.params.id, userId: req.user.id, sort: '-wins' },
+      );
+      const answerIds = qauStats.map(s => s.answerId);
+      const answers = await repo.answer.getPage(1, resultsCount, { id: answerIds });
+      const nameValues = qauStats.map((qauStat) => {
+        const answer = answers.find(a => a.id === qauStat.answerId);
+        return {
+          text: answer ? answer.text : 'Unknown',
+          wins: qauStat.wins,
+          losses: qauStat.losses,
+        };
+      });
+
+      res.json({ answerWins: nameValues });
+    },
+  );
+
   router.put(
     '/:id/update-answers',
     authorizer.check('question:update:update-answers'),

@@ -31,6 +31,7 @@
       "matches": [{ "target": "publicity", "fixed": "anonymous" }]
     }
   ],
+  "question:read:my-results": false,
   "question:create": false,
   "question:update": false,
   "question:delete": false,
