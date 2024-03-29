@@ -1,6 +1,11 @@
-module.exports.create = (client, entityType) => { // also passed: logger
+module.exports.create = (client, configuration) => { // also passed: logger
+  const { entityType, expiry } = configuration;
+
   function getRedisKey(key) {
-    return `${entityType}:${key}`;
+    if (entityType) {
+      return `${entityType}:${key}`;
+    }
+    return key;
   }
 
   async function get(key) {
@@ -11,7 +16,9 @@ module.exports.create = (client, entityType) => { // also passed: logger
   async function set(key, value) {
     const redisKey = getRedisKey(key);
     await client.set(redisKey, JSON.stringify(value));
-    await client.expire(redisKey, 3600); // expire in 1 hour
+    if (expiry) {
+      await client.expire(redisKey, expiry);
+    }
     return value;
   }
 

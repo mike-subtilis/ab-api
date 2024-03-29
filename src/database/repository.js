@@ -80,7 +80,7 @@ module.exports.create = async (dbConfig, logger) => {
     questionAnswerUserStatistic: questionAnswerUserStatisticRepo.create(cosmosDb, logger),
     questionStatistic: questionStatisticRepo.create(cosmosDb, logger),
     ballot: redisClient
-      ? baseRedisKVStore.create(redisClient, 'ballot')
+      ? baseRedisKVStore.create(redisClient, { entityType: 'ballot', expiry: 3600 })
       : baseInMemoryKVStore.create(),
   };
 };
