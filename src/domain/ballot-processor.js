@@ -17,17 +17,21 @@ module.exports.create = (repo, logger) => {
     const answer0 = await answerRepo.get(selectedAnswerIds[0]);
     const answer1 = await answerRepo.get(selectedAnswerIds[1]);
 
+    const createdAt = new Date();
+    const expiresAt = new Date(createdAt.getTime() + 3600000);
     const persistedBallot = {
       id: crypto.randomUUID(),
       questionId: q.id,
       userId: user?.id || '',
       answerIds: [answer0.id, answer1.id],
-      createdAt: (new Date()).toISOString(),
+      createdAt: createdAt.toISOString(),
+      expiresAt: expiresAt.toISOString(),
     };
     const savedBallot = await ballotKVStore.set(persistedBallot.id, persistedBallot);
     const hydratedBallot = {
       id: savedBallot.id,
       answers: [answer0, answer1].map(a => pick(a, ['text'])),
+      expiresAt: savedBallot.expiresAt,
     };
 
     return hydratedBallot;
