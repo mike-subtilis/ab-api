@@ -14,6 +14,7 @@ module.exports.create = ({ repo, authorizer, options, logger }) => {
     authorizer.check('question:read'),
     async (req, res) => {
       const resultsCount = req.query.count ? Number(req.query.count) : 10;
+      const qStats = await repo.questionStatistic.get(req.params.id);
       const qaStats = await repo.questionAnswerStatistic.getPage(
         1,
         resultsCount,
@@ -24,11 +25,41 @@ module.exports.create = ({ repo, authorizer, options, logger }) => {
       const nameValues = qaStats.map((qaStat) => {
         const answer = answers.find(a => a.id === qaStat.answerId);
         return {
-          name: answer ? answer.text : 'Unknown',
-          value: qaStat.wins,
+          text: answer ? answer.text : 'Unknown',
+          wins: qaStat.wins,
+          losses: qaStat.losses,
         };
       });
-      res.json(nameValues);
+
+      res.json({
+        votes: qStats.votes,
+        answerWins: nameValues,
+      });
+    },
+  );
+
+  router.get(
+    '/:id/my-results',
+    authorizer.check('question:read:my-results'),
+    async (req, res) => {
+      const resultsCount = req.query.count ? Number(req.query.count) : 10;
+      const qauStats = await repo.questionAnswerUserStatistic.getPage(
+        1,
+        resultsCount,
+        { questionId: req.params.id, userId: req.user.id, sort: '-wins' },
+      );
+      const answerIds = qauStats.map(s => s.answerId);
+      const answers = await repo.answer.getPage(1, resultsCount, { id: answerIds });
+      const nameValues = qauStats.map((qauStat) => {
+        const answer = answers.find(a => a.id === qauStat.answerId);
+        return {
+          text: answer ? answer.text : 'Unknown',
+          wins: qauStat.wins,
+          losses: qauStat.losses,
+        };
+      });
+
+      res.json({ answerWins: nameValues });
     },
   );
 
@@ -75,7 +106,6 @@ module.exports.create = ({ repo, authorizer, options, logger }) => {
       ballotProcessor.processValidatedBallot(validatedBallot);
 
       res.json({ statusCode: 202, status: 'Accepted' });
-      // res.sendStatus(202); // Accepted
     },
   );
 

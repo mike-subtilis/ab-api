@@ -18,5 +18,8 @@ module.exports = {
       userAgentSuffix: process.env.COSMOS_USER_AGENT_SUFFIX,
       dbId: process.env.COSMOS_DB_ID,
     },
+    redis: {
+      url: process.env.REDIS_URL,
+    },
   },
 };

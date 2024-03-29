@@ -1,13 +1,24 @@
 const cosmos = require('@azure/cosmos');
+const { createClient: createRedisClient } = require('redis');
 const baseCosmosContainerRepo = require('./base-cosmos-container-repo');
-const baseKVRepo = require('./base-kv-in-memory-repo');
+const baseRedisKVStore = require('./base-redis-kv-store');
+const baseInMemoryKVStore = require('./base-in-memory-kv-store');
 const migrations = require('./migrations/index');
 const questionAnswerStatisticRepo = require('./repos/question-answer-statistic-repo');
+const questionAnswerUserStatisticRepo = require('./repos/question-answer-user-statistic-repo');
+const questionStatisticRepo = require('./repos/question-statistic-repo');
 const schema = require('./schemas/index');
 
 module.exports.create = async (dbConfig, logger) => {
   const cosmosClient = new cosmos.CosmosClient(dbConfig.cosmos);
   const cosmosDb = cosmosClient.database(dbConfig.cosmos.dbId);
+
+  let redisClient;
+  if (dbConfig.redis && dbConfig.redis.url) {
+    redisClient = createRedisClient({ url: dbConfig.redis.url });
+    redisClient.on('error', (e) => { logger.error(e); });
+    await redisClient.connect();
+  }
 
   await cosmosDb
     .containers
@@ -24,6 +35,12 @@ module.exports.create = async (dbConfig, logger) => {
   await cosmosDb
     .containers
     .createIfNotExists({ id: 'QuestionAnswerStatistics', partitionKey: { kind: 'Hash', paths: ['/questionId'] } });
+  await cosmosDb
+    .containers
+    .createIfNotExists({ id: 'QuestionAnswerUserStatistics', partitionKey: { kind: 'Hash', paths: ['/questionId'] } });
+  await cosmosDb
+    .containers
+    .createIfNotExists({ id: 'QuestionStatistics', partitionKey: { kind: 'Hash', paths: ['/questionId'] } });
 
   return {
     question: baseCosmosContainerRepo.create(
@@ -60,6 +77,10 @@ module.exports.create = async (dbConfig, logger) => {
       logger,
     ),
     questionAnswerStatistic: questionAnswerStatisticRepo.create(cosmosDb, logger),
-    ballot: baseKVRepo.create(logger),
+    questionAnswerUserStatistic: questionAnswerUserStatisticRepo.create(cosmosDb, logger),
+    questionStatistic: questionStatisticRepo.create(cosmosDb, logger),
+    ballot: redisClient
+      ? baseRedisKVStore.create(redisClient, { entityType: 'ballot', expiry: 3600 })
+      : baseInMemoryKVStore.create(),
   };
 };

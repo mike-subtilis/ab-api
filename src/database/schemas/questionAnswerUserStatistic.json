@@ -1,0 +1,14 @@
+{
+  "title": "QuestionAnswerUserStatistic",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+
+    "questionId": { "type": "string" },
+    "answerId": { "type": "string" },
+    "userId": { "type": "string" },
+    "wins": { "type": "number" },
+    "losses": { "type": "number" }
+  }
+}
