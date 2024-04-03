@@ -10,15 +10,20 @@
   },
   "author": "",
   "license": "ISC",
+  "prisma": {
+    "schema": "src/database/prisma/schema.prisma"
+  },
   "devDependencies": {
     "eslint": "^8.56.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.29.1",
-    "jest": "^29.7.0"
+    "jest": "^29.7.0",
+    "prisma": "^5.11.0"
   },
   "dependencies": {
     "@azure/cosmos": "^4.0.0",
     "@node-redis/json": "^1.0.2",
+    "@prisma/client": "^5.11.0",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",

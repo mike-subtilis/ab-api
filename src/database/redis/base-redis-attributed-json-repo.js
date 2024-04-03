@@ -3,6 +3,14 @@ const crypto = require('crypto');
 module.exports.create = (client, configuration) => { // also passed: logger
   const { entityType, expiry } = configuration;
 
+  /*
+    await client.ft.create(`idx:${entityType}`,
+      schema,
+      {
+        ON: 'JSON',
+        PREFIX: `${entityType}:`
+      });
+  */
   function getRedisKey(key) {
     if (entityType) {
       if (key.startsWith(`${entityType}:`)) {
@@ -13,17 +21,37 @@ module.exports.create = (client, configuration) => { // also passed: logger
     return key;
   }
 
+  async function getCount() {
+    throw new Error('Not Implemented');
+  }
+
+  async function getPage(pageNumber, pageSize) { // also passed: queryOptions
+    const result = await client.ft.search(
+      `idx:${entityType}`,
+      '*',
+      {
+        LIMIT: {
+          from: (pageNumber - 1) * pageSize,
+          size: pageSize,
+        },
+      },
+    );
+
+    return result.documents;
+  }
+
   async function get(id) {
     const value = client.json.get(getRedisKey(id));
     return value;
   }
 
   async function create(fields, currentUser) {
-    const redisKey = getRedisKey(fields.id || crypto.randomUUID());
+    const id = fields.id || crypto.randomUUID();
+    const redisKey = getRedisKey(id);
     const attributionDate = new Date().toISOString();
     const attributedAndIdFields = {
       ...fields,
-      id: redisKey,
+      id,
       createdAt: attributionDate,
       createdBy: currentUser?.id,
       createdByUserName: currentUser?.name,
@@ -78,5 +106,5 @@ module.exports.create = (client, configuration) => { // also passed: logger
     await client.del(redisKey);
   }
 
-  return { get, create, update, delete: deleteEntity };
+  return { getCount, getPage, get, create, update, delete: deleteEntity };
 };

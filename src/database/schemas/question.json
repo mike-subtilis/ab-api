@@ -12,7 +12,7 @@
     "isRegional": { "type": "boolean" },
     "isTemporal": { "type": "boolean" },
 
-    "publicity": { "type": "string", "enum": ["private", "shared", "public"] },
+    "publicity": { "type": "string", "enum": ["private", "public", "anonymous"] },
     "isListed": { "type": "boolean" }
   }
 }

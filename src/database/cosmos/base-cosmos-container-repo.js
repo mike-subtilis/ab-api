@@ -1,12 +1,19 @@
 const crypto = require('crypto');
 
-module.exports.create = (container, constructorOptions, logger) => {
+module.exports.create2 = async (cosmosDb, constructorOptions, logger) => {
   const {
+    containerName,
     partitionField,
     createPartitionValue,
     schema,
     migrations,
   } = constructorOptions;
+
+  await cosmosDb
+    .containers
+    .createIfNotExists({ id: containerName, partitionKey: { kind: 'Hash', paths: [`/${partitionField}`] } });
+
+  const container = cosmosDb.container(containerName);
   const safeCreatePartitionValue = createPartitionValue || (v => v.id);
 
   function isFilterProvided(fieldDef, filterValue) {
