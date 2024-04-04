@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 
-module.exports.create = (prismaClient, configuration) => {
+module.exports.create = (prismaClient, configuration, logger) => {
   const { entityType } = configuration;
   const table = prismaClient[entityType];
 
@@ -9,8 +9,13 @@ module.exports.create = (prismaClient, configuration) => {
     return count;
   }
 
-  async function getPage() {
-    const docs = await table.findMany({ });
+  async function getPage(pageNumber, pageSize, queryOptions) {
+    logger.trace(`${entityType}.getPage(${pageNumber}, ${pageSize}, ${JSON.stringify(queryOptions)})...`);
+    const docs = await table.findMany({
+      skip: (pageNumber - 1) * pageSize,
+      take: pageSize,
+      where: queryOptions || {}
+    });
     return docs;
   }
 
@@ -20,11 +25,13 @@ module.exports.create = (prismaClient, configuration) => {
   }
 
   async function create(newFields, currentUser) {
+    logger.trace('create ' + JSON.stringify(newFields));
     const attributedAndIdFields = {
       id: crypto.randomUUID(),
       ...newFields,
       etag: crypto.randomUUID(),
-      ownedBy: currentUser?.id,
+      createdBy: currentUser?.id,
+      updatedBy: currentUser?.id,
     };
 
     const newDoc = await table.create({
@@ -37,6 +44,7 @@ module.exports.create = (prismaClient, configuration) => {
     const updatedFields = {
       ...fields,
       etag: crypto.randomUUID(),
+      updatedBy: currentUser?.id,
     };
 
     const updatedDoc = await table.update({

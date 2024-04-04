@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 
-module.exports.create2 = async (cosmosDb, constructorOptions, logger) => {
+module.exports.create = async (cosmosDb, constructorOptions, logger) => {
   const {
     containerName,
     partitionField,

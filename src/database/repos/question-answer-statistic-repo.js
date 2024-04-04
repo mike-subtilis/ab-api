@@ -1,9 +1,9 @@
 const baseCosmosContainerRepo = require('../cosmos/base-cosmos-container-repo');
 const questionAnswerStatisticSchema = require('../schemas/questionAnswerStatistic.json');
 
-module.exports.create = (cosmosDb, logger) => {
+module.exports.create = async (cosmosDb, logger) => {
   const containerName = 'QuestionAnswerStatistics';
-  const baseRepo = baseCosmosContainerRepo.create(
+  const baseRepo = await baseCosmosContainerRepo.create(
     cosmosDb,
     {
       containerName,

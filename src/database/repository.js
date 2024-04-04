@@ -3,6 +3,8 @@ const baseCosmosContainerRepo = require('./cosmos/base-cosmos-container-repo');
 const redisClientFactory = require('./redis/redis-client');
 const baseRedisKVStore = require('./redis/base-redis-kv-store');
 const baseInMemoryKVStore = require('./in-memory/base-in-memory-kv-store');
+const basePrismaRepo = require('./prisma/base-prisma-repo');
+const prismaClientFactory = require('./prisma/prisma-client');
 const migrations = require('./migrations/index');
 const questionAnswerStatisticRepo = require('./repos/question-answer-statistic-repo');
 const questionAnswerUserStatisticRepo = require('./repos/question-answer-user-statistic-repo');
@@ -10,8 +12,9 @@ const questionStatisticRepo = require('./repos/question-statistic-repo');
 const schema = require('./schemas/index');
 
 module.exports.create = async (dbConfig, logger) => {
-  const cosmosDb = cosmosClientFactory.create(dbConfig.cosmos);
-  const redisClient = redisClientFactory.create(dbConfig.redis, logger);
+  const cosmosDb = await cosmosClientFactory.create(dbConfig.cosmos, logger);
+  const redisClient = await redisClientFactory.create(dbConfig.redis, logger);
+  const prismaClient = await prismaClientFactory.create(dbConfig.prisma, logger);
 
   const questionRepo = await baseCosmosContainerRepo.create(
     cosmosDb,
@@ -41,6 +44,12 @@ module.exports.create = async (dbConfig, logger) => {
     },
     logger,
   );
+  const userRepo = await basePrismaRepo.create(
+    prismaClient,
+    { entityType: 'User' },
+    logger,
+  );
+  /*
   const userRepo = await baseCosmosContainerRepo.create(
     cosmosDb,
     {
@@ -50,6 +59,7 @@ module.exports.create = async (dbConfig, logger) => {
     },
     logger,
   );
+  */
 
   return {
     question: questionRepo,

@@ -51,7 +51,7 @@ module.exports.create = (auth0Config, userRepo, logger) => {
 
   async function fetchUserFromAuth0AndStoreInRepo(auth0UserId) {
     const accessToken = await getAccessToken();
-    let retrievedFields = { name: '(unknown)' };
+    let retrievedFields = { name: '(unknown)', email: '' };
     if (accessToken) {
       const userFromAuth0 = await getUserFromAuth0(auth0UserId, accessToken);
       if (userFromAuth0) {
@@ -63,7 +63,7 @@ module.exports.create = (auth0Config, userRepo, logger) => {
       logger.error('No user repo is configured. Cannot save this user.');
       return userFields;
     }
-    const createdUser = await userRepo.create(null, userFields);
+    const createdUser = await userRepo.create(userFields, userFields);
     return createdUser;
   }
 
