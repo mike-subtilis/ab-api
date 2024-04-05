@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const { auth } = require('express-oauth2-jwt-bearer');
 const { jwtDecode } = require('jwt-decode');
 
@@ -54,11 +55,12 @@ module.exports.create = (auth0Config, userRepo, logger) => {
     if (accessToken) {
       const userFromAuth0 = await getUserFromAuth0(auth0UserId, accessToken);
       if (userFromAuth0) {
-        const retrievedFields = {
+        const userFields = {
+          id: crypto.randomUUID(),
+          auth0UserId,
           name: userFromAuth0.nickname || userFromAuth0.name || '(unknown)',
           email: userFromAuth0.email,
         };
-        const userFields = { auth0UserId, ...retrievedFields };
         if (!userRepo) {
           logger.error('No user repo is configured. Cannot save this user.');
           return userFields;

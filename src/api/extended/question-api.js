@@ -32,7 +32,7 @@ module.exports.create = ({ repo, authorizer, options, logger }) => {
       });
 
       res.json({
-        votes: qStats.votes,
+        votes: qStats ? qStats.votes : 0,
         answerWins: nameValues,
       });
     },

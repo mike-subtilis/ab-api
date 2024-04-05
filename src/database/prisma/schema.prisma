@@ -25,8 +25,7 @@ model Question {
   subject       String?
   publicity     Publicity @default(private)
   isListed      Boolean   @default(false)
-  ownedBy       User      @relation("OwnedQuestions", fields: [ownedById], references: [id])
-  ownedById     String
+  creator       User      @relation("CreatedQuestions", fields: [createdBy], references: [id])
   tags          Tag[]
   answers       Answer[]
   favoritedBy   User[]    @relation("FavoriteQuestions")
@@ -55,14 +54,14 @@ model Tag {
 model User {
   id                  String      @id @default(uuid())
   etag                String      @default(uuid())
-  createdAt           DateTime  @default(now())
+  createdAt           DateTime    @default(now())
   createdBy           String
-  updatedAt           DateTime  @updatedAt
+  updatedAt           DateTime    @updatedAt
   updatedBy           String
   name                String
   email               String?     @unique
   auth0UserId         String?     @unique
-  ownedQuestions      Question[]  @relation("OwnedQuestions")
+  createdQuestions    Question[]  @relation("CreatedQuestions")
   favoriteQuestions   Question[]  @relation("FavoriteQuestions")
 }
 
