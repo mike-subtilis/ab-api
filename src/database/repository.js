@@ -16,14 +16,9 @@ module.exports.create = async (dbConfig, logger) => {
   const redisClient = await redisClientFactory.create(dbConfig.redis, logger);
   const prismaClient = await prismaClientFactory.create(dbConfig.prisma, logger);
 
-  const questionRepo = await baseCosmosContainerRepo.create(
-    cosmosDb,
-    {
-      containerName: 'Questions',
-      partitionField: 'questionId',
-      schema: schema.question,
-      migrations: migrations.question.create(),
-    },
+  const questionRepo = await basePrismaRepo.create(
+    prismaClient,
+    { entityType: 'Question', schema: schema.question },
     logger,
   );
   const answerRepo = await baseCosmosContainerRepo.create(
@@ -46,20 +41,9 @@ module.exports.create = async (dbConfig, logger) => {
   );
   const userRepo = await basePrismaRepo.create(
     prismaClient,
-    { entityType: 'User' },
+    { entityType: 'User', schema: schema.user },
     logger,
   );
-  /*
-  const userRepo = await baseCosmosContainerRepo.create(
-    cosmosDb,
-    {
-      containerName: 'Users',
-      partitionField: 'userId',
-      schema: schema.user,
-    },
-    logger,
-  );
-  */
 
   return {
     question: questionRepo,

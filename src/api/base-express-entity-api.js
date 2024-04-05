@@ -22,23 +22,23 @@ module.exports.create = (constructorOptions) => {
   });
 
   router.get('/:id', authorizer.check(`${entityType}:read`), async (req, res) => {
-    const results = await entityRepo.get(req.params.id, req.query[entityRepo.partitionField]);
+    const results = await entityRepo.get(req.params.id);
     res.json(results);
   });
 
   if (!options.readOnly) {
     router.post('/', authorizer.check(`${entityType}:create`), async (req, res) => {
-      const results = await entityRepo.create(req.body, req.user, req.query[entityRepo.partitionField]);
+      const results = await entityRepo.create(req.body, req.user);
       res.json(results);
     });
 
     router.put('/:id', authorizer.check(`${entityType}:update`), async (req, res) => {
-      const results = await entityRepo.update(req.params.id, req.query.etag, req.body, req.user, req.query[entityRepo.partitionField]);
+      const results = await entityRepo.update(req.params.id, req.query.etag, req.body, req.user);
       res.json(results);
     });
 
     router.delete('/:id', authorizer.check(`${entityType}:delete`), async (req, res) => {
-      await entityRepo.delete(req.params.id, req.query.etag, req.user, req.query[entityRepo.partitionField]);
+      await entityRepo.delete(req.params.id, req.query.etag, req.user);
       res.sendStatus(200);
     });
   }

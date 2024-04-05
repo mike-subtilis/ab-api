@@ -17,7 +17,9 @@ model Question {
   id            String    @id @default(uuid())
   etag          String    @default(uuid())
   createdAt     DateTime  @default(now())
+  createdBy     String
   updatedAt     DateTime  @updatedAt
+  updatedBy     String
   prefix        String?
   metric        String?
   subject       String?
@@ -33,8 +35,10 @@ model Question {
 model Answer {
   id        String   @id @default(uuid())
   etag      String   @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  createdBy String
+  updatedAt DateTime  @updatedAt
+  updatedBy String
   text      String?
   publicity Publicity @default(private)
   tags      Tag[]
@@ -51,11 +55,13 @@ model Tag {
 model User {
   id                  String      @id @default(uuid())
   etag                String      @default(uuid())
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
-  email               String      @unique
-  name                String?
-  auth0UserId         String?
+  createdAt           DateTime  @default(now())
+  createdBy           String
+  updatedAt           DateTime  @updatedAt
+  updatedBy           String
+  name                String
+  email               String?     @unique
+  auth0UserId         String?     @unique
   ownedQuestions      Question[]  @relation("OwnedQuestions")
   favoriteQuestions   Question[]  @relation("FavoriteQuestions")
 }

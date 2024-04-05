@@ -2,7 +2,8 @@
   "title": "User",
   "type": "object",
   "properties": {
+    "name": { "type": "string" },
     "email": { "type": "string", "format": "email" },
-    "name": { "type": "string" }
+    "auth0UserId": { "type": "string" }
   }
 }
