@@ -5,7 +5,6 @@ const baseRedisKVStore = require('./redis/base-redis-kv-store');
 const baseInMemoryKVStore = require('./in-memory/base-in-memory-kv-store');
 const basePrismaRepo = require('./prisma/base-prisma-repo');
 const prismaClientFactory = require('./prisma/prisma-client');
-const migrations = require('./migrations/index');
 const questionAnswerStatisticRepo = require('./repos/question-answer-statistic-repo');
 const questionAnswerUserStatisticRepo = require('./repos/question-answer-user-statistic-repo');
 const questionStatisticRepo = require('./repos/question-statistic-repo');
@@ -30,11 +29,10 @@ module.exports.create = async (dbConfig, logger) => {
     },
     logger,
   );
-  const tagRepo = await baseCosmosContainerRepo.create(
-    cosmosDb,
+  const tagRepo = await basePrismaRepo.create(
+    prismaClient,
     {
-      containerName: 'Tags',
-      partitionField: 'key',
+      entityType: 'Tag',
       schema: schema.tag,
     },
     logger,

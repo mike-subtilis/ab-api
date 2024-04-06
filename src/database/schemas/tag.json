@@ -2,8 +2,6 @@
   "title": "Tag",
   "type": "object",
   "properties": {
-    "key": { "type": "string" },
-    "questionCount": { "type": "number" },
-    "answerCount": { "type": "number" }
+    "display": { "type": "string" }
   }
 }

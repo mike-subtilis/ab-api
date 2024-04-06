@@ -1,7 +1,9 @@
 const crypto = require('crypto');
+const prismaUtil = require('./prisma-util');
+const { pick } = require('../../util/objectUtil');
 
 module.exports.create = async (prismaClient, configuration, logger) => {
-  const { entityType, schema } = configuration;
+  const { entityType, idField = 'id', schema, usesETag = true, usesAttribution = true } = configuration;
   const table = prismaClient[entityType];
 
   function isFilterProvided(fieldDef, filterValue) {
@@ -118,6 +120,10 @@ module.exports.create = async (prismaClient, configuration, logger) => {
     return { orderBy: { [queryOptions.sort]: 'asc' } };
   }
 
+  function extractIncludeAndSelectInfo(queryOptions) {
+    return pick(queryOptions, ['select', 'include']);
+  }
+
   async function getCount(queryOptions) { // also passed: currentUser
     logger.trace(`${entityType}.getCount(${JSON.stringify(queryOptions)})...`);
     const whereInfo = extractFilterInfo(queryOptions);
@@ -130,18 +136,26 @@ module.exports.create = async (prismaClient, configuration, logger) => {
     logger.trace(`${entityType}.getPage(${pageNumber}, ${pageSize}, ${JSON.stringify(queryOptions)})...`);
     const sortInfo = extractSortInfo(queryOptions);
     const whereInfo = extractFilterInfo(queryOptions);
+    const includeAndSelectInfo = extractIncludeAndSelectInfo(queryOptions);
 
-    const docs = await table.findMany({
+    const findManyOptions = {
       skip: (pageNumber - 1) * pageSize,
       take: pageSize,
       ...sortInfo,
       ...whereInfo,
-    });
+      ...includeAndSelectInfo,
+    };
+    const docs = await table.findMany(findManyOptions);
     return docs;
   }
 
-  async function get(id) { // also passed: currentUser
-    const doc = await table.findUnique({ where: { id } });
+  async function get(id, queryOptions) { // also passed: currentUser
+    const includeAndSelectInfo = extractIncludeAndSelectInfo(queryOptions);
+
+    const doc = await table.findUnique({
+      where: { [idField]: id },
+      ...includeAndSelectInfo,
+    });
     return doc;
   }
 
@@ -152,11 +166,17 @@ module.exports.create = async (prismaClient, configuration, logger) => {
 
   async function create(newFields, currentUser) {
     const attributedAndIdFields = {
-      id: crypto.randomUUID(),
-      ...newFields,
-      etag: crypto.randomUUID(),
-      createdBy: currentUser?.id,
-      updatedBy: currentUser?.id,
+      [idField]: crypto.randomUUID(),
+      ...prismaUtil.getFieldsToSet(newFields, schema),
+      ...(usesETag ? { etag: crypto.randomUUID() } : {}),
+      ...(
+        usesAttribution
+          ? {
+            createdBy: currentUser?.id,
+            updatedBy: currentUser?.id,
+          }
+          : {}
+      ),
     };
 
     const newDoc = await table.create({
@@ -167,13 +187,13 @@ module.exports.create = async (prismaClient, configuration, logger) => {
 
   async function update(id, etag, fields, currentUser) {
     const updatedFields = {
-      ...fields,
-      etag: crypto.randomUUID(),
-      updatedBy: currentUser?.id,
+      ...prismaUtil.getFieldsToSet(fields, schema, true),
+      ...(usesETag ? { etag: crypto.randomUUID() } : {}),
+      ...(usesAttribution ? { updatedBy: currentUser?.id } : {}),
     };
 
     const updatedDoc = await table.update({
-      where: { id, etag },
+      where: { [idField]: id, ...(usesETag ? { etag } : {}) },
       data: updatedFields,
     });
 

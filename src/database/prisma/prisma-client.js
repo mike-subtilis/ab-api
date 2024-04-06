@@ -6,7 +6,7 @@ module.exports.create = async (prismaConfig, logger) => {
     datasources: {
       db: { url: prismaConfig.url },
     },
-    log: ['query', 'info', 'warn', 'error'],
+    log: ['info', 'warn', 'error'],
   });
 
   return prisma;
