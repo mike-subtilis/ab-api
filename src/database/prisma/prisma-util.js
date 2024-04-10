@@ -1,6 +1,9 @@
 const { mapValues } = require('../../util/objectUtil');
 
-function getFieldToSet(fieldValue, fieldKey, schema, isUpdate) {
+function getFieldToSet(fieldValue, fieldKey, schema, fieldSetters, isUpdate) {
+  if (fieldSetters && fieldSetters[fieldKey]) {
+    return fieldSetters[fieldKey](fieldValue);
+  }
   if (!schema) {
     return fieldValue;
   }
@@ -17,8 +20,8 @@ function getFieldToSet(fieldValue, fieldKey, schema, isUpdate) {
   return fieldValue;
 }
 
-function getFieldsToSet(fields, schema, isUpdate) {
-  return mapValues(fields, (v, k) => getFieldToSet(v, k, schema, isUpdate));
+function getFieldsToSet(fields, schema, fieldSetters, isUpdate) {
+  return mapValues(fields, (v, k) => getFieldToSet(v, k, schema, fieldSetters, isUpdate));
 }
 
 module.exports = { getFieldToSet, getFieldsToSet };

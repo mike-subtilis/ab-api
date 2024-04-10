@@ -1,5 +1,4 @@
 const cosmosClientFactory = require('./cosmos/cosmos-client');
-const baseCosmosContainerRepo = require('./cosmos/base-cosmos-container-repo');
 const redisClientFactory = require('./redis/redis-client');
 const baseRedisKVStore = require('./redis/base-redis-kv-store');
 const baseInMemoryKVStore = require('./in-memory/base-in-memory-kv-store');
@@ -17,15 +16,48 @@ module.exports.create = async (dbConfig, logger) => {
 
   const questionRepo = await basePrismaRepo.create(
     prismaClient,
-    { entityType: 'Question', schema: schema.question },
+    {
+      entityType: 'Question',
+      schema: schema.question,
+      defaultInclude: { tags: true },
+      fieldSetters: {
+        answers: (v) => {
+          const setter = {};
+          if (v && v.add) {
+            setter.connect = v.add.map(vi => ({ id: vi }));
+          }
+          if (v && v.remove) {
+            setter.disconnect = v.remove.map(vi => ({ id: vi }));
+          }
+          return setter;
+        },
+      },
+    },
     logger,
   );
-  const answerRepo = await baseCosmosContainerRepo.create(
-    cosmosDb,
+  const answerRepo = await basePrismaRepo.create(
+    prismaClient,
     {
-      containerName: 'Answers',
-      partitionField: 'answerId',
+      entityType: 'Answer',
       schema: schema.answer,
+      defaultInclude: { tags: true },
+      fieldGetters: {
+        questions: (v) => {
+          
+        },
+      },
+      fieldSetters: {
+        questions: (v) => {
+          const setter = {};
+          if (v && v.add) {
+            setter.connect = v.add.map(vi => ({ id: vi }));
+          }
+          if (v && v.remove) {
+            setter.disconnect = v.remove.map(vi => ({ id: vi }));
+          }
+          return setter;
+        },
+      },
     },
     logger,
   );

@@ -1,6 +1,5 @@
 const express = require('express');
 const baseEntityApiFactory = require('../base-express-entity-api');
-const arrayUtil = require('../../util/arrayUtil');
 const ballotProcessorFactory = require('../../domain/ballot-processor');
 const questionHandlerFactory = require('../../domain/question-handler');
 
@@ -69,18 +68,12 @@ module.exports.create = ({ repo, authorizer, options, logger }) => {
     '/:id/update-answers',
     authorizer.check('question:update:update-answers'),
     (req, res) => {
-      questionRepo.get(req.params.id)
-        .then((q) => {
-          const existingPlusAdded = arrayUtil.uniq([...(q.answerIds || []), ...(req.body.addedAnswerIds || [])]);
-          const answerIds = arrayUtil.difference(existingPlusAdded, req.body.removedAnswerIds || []);
-          return questionRepo.update(
-            req.params.id,
-            req.query.etag,
-            { answerIds },
-            req.user,
-            req.query[questionRepo.partitionField],
-          );
-        })
+      questionRepo.update(
+        req.params.id,
+        req.query.etag,
+        { answers: { add: req.body.addedAnswerIds, remove: req.body.removedAnswerIds } },
+        req.user,
+      )
         .then((updatedQuestion) => { res.json(updatedQuestion); });
     },
   );

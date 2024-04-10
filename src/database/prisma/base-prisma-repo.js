@@ -1,9 +1,17 @@
 const crypto = require('crypto');
 const prismaUtil = require('./prisma-util');
-const { pick } = require('../../util/objectUtil');
 
 module.exports.create = async (prismaClient, configuration, logger) => {
-  const { entityType, idField = 'id', schema, usesETag = true, usesAttribution = true } = configuration;
+  const {
+    entityType,
+    idField = 'id',
+    schema,
+    usesETag = true,
+    usesAttribution = true,
+    defaultInclude,
+    defaultSelect,
+    fieldSetters,
+  } = configuration;
   const table = prismaClient[entityType];
 
   function isFilterProvided(fieldDef, filterValue) {
@@ -25,12 +33,21 @@ module.exports.create = async (prismaClient, configuration, logger) => {
         if (Array.isArray(filterValue)) {
           return { [k]: { in: filterValue } };
         }
+        if (fieldDef.enum) {
+          return { [k]: filterValue };
+        }
         return { [k]: { contains: filterValue, mode: 'insensitive' } };
 
       case 'array':
         if (Array.isArray(filterValue)) {
+          if (fieldDef.items.type === 'object') {
+            return { [k]: { hasSome: filterValue.map(v => ({ id: v })) } };
+          }
           // intersection
           return { [k]: { hasSome: filterValue } };
+        }
+        if (fieldDef.items.type === 'object') {
+          return { [k]: { some: { id: filterValue } } };
         }
         return { [k]: { has: filterValue } };
 
@@ -78,6 +95,12 @@ module.exports.create = async (prismaClient, configuration, logger) => {
     }
 
     const authorizationOptions = authorizationFilters.map(f => renderAuthorizationFilter(f));
+    if (authorizationOptions.length === 0) {
+      return {};
+    }
+    if (authorizationOptions.length === 1) {
+      return authorizationOptions[0];
+    }
     return { OR: authorizationOptions };
   }
 
@@ -121,7 +144,12 @@ module.exports.create = async (prismaClient, configuration, logger) => {
   }
 
   function extractIncludeAndSelectInfo(queryOptions) {
-    return pick(queryOptions, ['select', 'include']);
+    const includeAndSelect = {};
+    const include = queryOptions.include || defaultInclude;
+    const select = queryOptions.select || defaultSelect;
+    if (include) { includeAndSelect.include = include; }
+    if (select) { includeAndSelect.select = select; }
+    return includeAndSelect;
   }
 
   async function getCount(queryOptions) { // also passed: currentUser
@@ -150,7 +178,7 @@ module.exports.create = async (prismaClient, configuration, logger) => {
   }
 
   async function get(id, queryOptions) { // also passed: currentUser
-    const includeAndSelectInfo = extractIncludeAndSelectInfo(queryOptions);
+    const includeAndSelectInfo = extractIncludeAndSelectInfo(queryOptions || {});
 
     const doc = await table.findUnique({
       where: { [idField]: id },
@@ -167,7 +195,7 @@ module.exports.create = async (prismaClient, configuration, logger) => {
   async function create(newFields, currentUser) {
     const attributedAndIdFields = {
       [idField]: crypto.randomUUID(),
-      ...prismaUtil.getFieldsToSet(newFields, schema),
+      ...prismaUtil.getFieldsToSet(newFields, schema, fieldSetters),
       ...(usesETag ? { etag: crypto.randomUUID() } : {}),
       ...(
         usesAttribution
@@ -187,7 +215,7 @@ module.exports.create = async (prismaClient, configuration, logger) => {
 
   async function update(id, etag, fields, currentUser) {
     const updatedFields = {
-      ...prismaUtil.getFieldsToSet(fields, schema, true),
+      ...prismaUtil.getFieldsToSet(fields, schema, fieldSetters, true),
       ...(usesETag ? { etag: crypto.randomUUID() } : {}),
       ...(usesAttribution ? { updatedBy: currentUser?.id } : {}),
     };

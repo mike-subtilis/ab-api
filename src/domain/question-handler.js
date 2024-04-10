@@ -14,14 +14,14 @@ module.exports.create = (repo, logger) => {
     const results = await repo.question.getPage(
       page,
       pageSize,
-      { ...queryOptions, include: { tags: { select: { display: true } } } },
+      { ...queryOptions },
       currentUser,
     );
     return results.map(q => transformTagObjects(q));
   }
 
   async function get(id) {
-    const question = await repo.question.get(id, { include: { tags: { select: { display: true } } } });
+    const question = await repo.question.get(id);
     return transformTagObjects(question);
   }
 
