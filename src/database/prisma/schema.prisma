@@ -25,6 +25,7 @@ model Question {
   subject       String?
   publicity     Publicity @default(private)
   isListed      Boolean   @default(false)
+  isVotingOpen  Boolean   @default(false)
   creator       User      @relation("CreatedQuestions", fields: [createdBy], references: [id])
   tags          Tag[]
   answers       Answer[]
@@ -32,16 +33,16 @@ model Question {
 }
 
 model Answer {
-  id        String   @id @default(uuid())
-  etag      String   @default(uuid())
-  createdAt DateTime  @default(now())
-  createdBy String
-  updatedAt DateTime  @updatedAt
-  updatedBy String
-  text      String?
-  publicity Publicity @default(private)
-  tags      Tag[]
-  questions Question[]
+  id            String    @id @default(uuid())
+  etag          String    @default(uuid())
+  createdAt     DateTime  @default(now())
+  createdBy     String
+  updatedAt     DateTime  @updatedAt
+  updatedBy     String
+  text          String?
+  publicity     Publicity @default(private)
+  tags          Tag[]
+  questions     Question[]
 }
 
 model Tag {

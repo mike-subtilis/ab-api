@@ -41,9 +41,12 @@ module.exports.create = async (dbConfig, logger) => {
       entityType: 'Answer',
       schema: schema.answer,
       defaultInclude: { tags: true },
-      fieldGetters: {
+      fieldFilters: {
         questions: (v) => {
-          
+          if (Array.isArray(v)) {
+            return { hasSome: v.map(vi => ({ id: vi })) };
+          }
+          return { some: { id: v } };
         },
       },
       fieldSetters: {

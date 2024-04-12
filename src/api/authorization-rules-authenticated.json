@@ -36,7 +36,10 @@
     },
     {
       "name": "users can read public & anonymous questions",
-      "matches": [{ "target": "publicity", "fixed": ["public", "anonymous"] }]
+      "matches": [
+        { "target": "publicity", "fixed": ["public", "anonymous"] },
+        { "target": "isVotingOpen", "fixed": true }
+      ]
     }
   ],
   "question:read": [

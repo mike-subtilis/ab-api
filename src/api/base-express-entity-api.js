@@ -1,4 +1,5 @@
 const express = require('express');
+const { omit } = require('../util/objectUtil');
 
 module.exports.create = (constructorOptions) => {
   const {
@@ -41,9 +42,10 @@ module.exports.create = (constructorOptions) => {
     });
 
     router.put('/:id', authorizer.check(`${entityType}:update`), async (req, res) => {
+      const cleanBody = omit(req.body, ['id', 'etag', 'createdAt', 'createdBy', 'updatedAt', 'updatedBy']);
       const results = (entityHandler && entityHandler.update)
-        ? await entityHandler.update(req.params.id, req.query.etag, req.body, req.user)
-        : await entityRepo.update(req.params.id, req.query.etag, req.body, req.user);
+        ? await entityHandler.update(req.params.id, req.query.etag, cleanBody, req.user)
+        : await entityRepo.update(req.params.id, req.query.etag, cleanBody, req.user);
       res.json(results);
     });
 
