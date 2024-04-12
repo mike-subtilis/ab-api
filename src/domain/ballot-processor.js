@@ -11,17 +11,20 @@ module.exports.create = (repo, logger) => {
   const questionStatisticRepo = repo.questionStatistic;
 
   async function createBallot(questionId, user) {
-    const q = await questionRepo.get(questionId);
-    const selectedAnswerIds = answerUtil.selectAnswersForBallot(q.answerIds);
-    logger.trace(`creating ballot for Q: ${questionId}. A: ${selectedAnswerIds.join(', ')}...`);
-    const answer0 = await answerRepo.get(selectedAnswerIds[0]);
-    const answer1 = await answerRepo.get(selectedAnswerIds[1]);
+    const answerCount = await answerRepo.getCount({ questions: questionId });
+    const selectedAnswerIndexes = answerUtil.selectAnswerIndexesForBallot(answerCount);
+    logger.trace(`creating ballot for Q: ${questionId}. A: ${selectedAnswerIndexes.join(', ')}...`);
+    const answers0 = await answerRepo.getPage(selectedAnswerIndexes[0] + 1, 1, { questions: questionId });
+    const answers1 = await answerRepo.getPage(selectedAnswerIndexes[1] + 1, 1, { questions: questionId });
+
+    const answer0 = answers0[0];
+    const answer1 = answers1[0];
 
     const createdAt = new Date();
     const expiresAt = new Date(createdAt.getTime() + 3600000);
     const persistedBallot = {
       id: crypto.randomUUID(),
-      questionId: q.id,
+      questionId: questionId,
       userId: user?.id || '',
       answerIds: [answer0.id, answer1.id],
       createdAt: createdAt.toISOString(),
@@ -30,7 +33,7 @@ module.exports.create = (repo, logger) => {
     const savedBallot = await ballotKVStore.set(persistedBallot.id, persistedBallot);
     const hydratedBallot = {
       id: savedBallot.id,
-      answers: [answer0, answer1].map(a => pick(a, ['text'])),
+      answers: [answer0, answer1].map(a => pick(a, ['text', 'tags'])),
       expiresAt: savedBallot.expiresAt,
     };
 

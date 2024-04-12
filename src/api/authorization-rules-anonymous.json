@@ -22,13 +22,19 @@
   "question:list": [
     {
       "name": "anonymous users can read anonymous questions",
-      "matches": [{ "target": "publicity", "fixed": "anonymous" }]
+      "matches": [
+        { "target": "publicity", "fixed": "anonymous" },
+        { "target": "isVotingOpen", "fixed": true }
+      ]
     }
   ],
   "question:read": [
     {
       "name": "anonymous users can read anonymous questions",
-      "matches": [{ "target": "publicity", "fixed": "anonymous" }]
+      "matches": [
+        { "target": "publicity", "fixed": "anonymous" },
+        { "target": "isVotingOpen", "fixed": true }
+      ]
     }
   ],
   "question:read:my-results": false,

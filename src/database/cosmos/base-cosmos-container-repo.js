@@ -1,12 +1,19 @@
 const crypto = require('crypto');
 
-module.exports.create = (container, constructorOptions, logger) => {
+module.exports.create = async (cosmosDb, constructorOptions, logger) => {
   const {
+    containerName,
     partitionField,
     createPartitionValue,
     schema,
     migrations,
   } = constructorOptions;
+
+  await cosmosDb
+    .containers
+    .createIfNotExists({ id: containerName, partitionKey: { kind: 'Hash', paths: [`/${partitionField}`] } });
+
+  const container = cosmosDb.container(containerName);
   const safeCreatePartitionValue = createPartitionValue || (v => v.id);
 
   function isFilterProvided(fieldDef, filterValue) {
@@ -113,7 +120,7 @@ module.exports.create = (container, constructorOptions, logger) => {
     return `ORDER BY r.${queryOptions.sort}`;
   }
 
-  async function getCount(queryOptions) {
+  async function getCount(queryOptions) { // also passed: currentUser
     const filterInfo = extractFilterInfo(queryOptions);
 
     const queryString = `SELECT VALUE COUNT(1) FROM root r
@@ -131,7 +138,7 @@ module.exports.create = (container, constructorOptions, logger) => {
     return count;
   }
 
-  async function getPage(pageNumber, pageSize, queryOptions) {
+  async function getPage(pageNumber, pageSize, queryOptions) { // also passed: currentUser
     const filterInfo = extractFilterInfo(queryOptions);
 
     const sortClause = extractSortClause(queryOptions);
@@ -167,6 +174,30 @@ module.exports.create = (container, constructorOptions, logger) => {
       return migrations.migrateUpAll(result);
     }
     return result;
+  }
+
+  async function getUnique(fieldName, uniqueValue) { // also passed: currentUser
+    const queryString = `SELECT * FROM root r
+      WHERE r.${fieldName} = @uniqueValue OFFSET 0 LIMIT 1`;
+    logger.trace(`Querying '${queryString}'...`);
+
+    const { resources: results } = await container
+      .items
+      .query({
+        query: queryString,
+        parameters: [{ name: `@${uniqueValue}`, value: uniqueValue }],
+      })
+      .fetchAll();
+
+    let migratedResults = results;
+    if (migrations) {
+      migratedResults = results.map(migrations.migrateUpAll);
+    }
+
+    if (migratedResults.length === 1) {
+      return migratedResults[0];
+    }
+    return null;
   }
 
   async function create(fields, currentUser, partitionValue) {
@@ -244,6 +275,7 @@ module.exports.create = (container, constructorOptions, logger) => {
     getCount,
     getPage,
     get,
+    getUnique,
     create,
     update,
     delete: deleteEntity,

@@ -6,13 +6,14 @@
     "metric": { "type": "string" },
     "subject": { "type": "string" },
 
-    "answerIds": { "type": "array", "items": { "type": "string", "format": "uuid" } },
-
+    "answers": { "type": "array", "items": { "type": "object" } },
     "tags": { "type": "array", "items": { "type": "object" } },
+
     "isRegional": { "type": "boolean" },
     "isTemporal": { "type": "boolean" },
 
-    "publicity": { "type": "string", "enum": ["private", "shared", "public"] },
+    "publicity": { "type": "string", "enum": ["private", "public", "anonymous"] },
+    "isVotingOpen": { "type": "boolean" },
     "isListed": { "type": "boolean" }
   }
 }

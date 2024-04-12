@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const { auth } = require('express-oauth2-jwt-bearer');
 const { jwtDecode } = require('jwt-decode');
 
@@ -51,20 +52,25 @@ module.exports.create = (auth0Config, userRepo, logger) => {
 
   async function fetchUserFromAuth0AndStoreInRepo(auth0UserId) {
     const accessToken = await getAccessToken();
-    let retrievedFields = { name: '(unknown)' };
     if (accessToken) {
       const userFromAuth0 = await getUserFromAuth0(auth0UserId, accessToken);
       if (userFromAuth0) {
-        retrievedFields = { email: userFromAuth0.email, name: userFromAuth0.nickname || userFromAuth0.name };
+        const userFields = {
+          id: crypto.randomUUID(),
+          auth0UserId,
+          name: userFromAuth0.nickname || userFromAuth0.name || '(unknown)',
+          email: userFromAuth0.email,
+        };
+        if (!userRepo) {
+          logger.error('No user repo is configured. Cannot save this user.');
+          return userFields;
+        }
+        const createdUser = await userRepo.create(userFields, userFields);
+        return createdUser;
       }
     }
-    const userFields = { auth0UserId, ...retrievedFields };
-    if (!userRepo) {
-      logger.error('No user repo is configured. Cannot save this user.');
-      return userFields;
-    }
-    const createdUser = await userRepo.create(null, userFields);
-    return createdUser;
+    logger.trace('Returning default user...');
+    return { name: '(unknown)' };
   }
 
   async function getUserFromRepo(auth0UserId) {
@@ -73,17 +79,12 @@ module.exports.create = (auth0Config, userRepo, logger) => {
       return null;
     }
 
-    const usersFromRepo = await userRepo.getPage(1, 1, { auth0UserId });
-    if (usersFromRepo.length === 1) {
-      logger.debug(`Found user ${usersFromRepo[0].name} in the user repo.`);
-      return usersFromRepo[0];
+    const userFromRepo = await userRepo.getUnique('auth0UserId', auth0UserId);
+    if (userFromRepo) {
+      logger.debug(`Found user ${userFromRepo.name} in the user repo.`);
+      return userFromRepo;
     }
-    if (usersFromRepo.length > 1) {
-      logger.error(`Found ${usersFromRepo.length} users that match the Auth0 Id '${auth0UserId}' in the user repo. There should be at most 1.`);
-    }
-    if (usersFromRepo.length === 0) {
-      logger.warn(`Could not find user ${auth0UserId} in the user repo.`);
-    }
+    logger.warn(`Could not find user ${auth0UserId} in the user repo.`);
     return null;
   }
 

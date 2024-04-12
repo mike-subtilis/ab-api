@@ -21,5 +21,8 @@ module.exports = {
     redis: {
       url: process.env.REDIS_URL,
     },
+    prisma: {
+      url: process.env.POSTGRESQL_URL,
+    },
   },
 };

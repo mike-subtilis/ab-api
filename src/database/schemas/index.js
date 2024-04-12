@@ -7,7 +7,7 @@ const user = require('./user.json');
 
 module.exports = {
   base,
-  tag,
+  tag: { ...tag, properties: { ...tag.properties, ...base.properties } },
   answer: { ...answer, properties: { ...answer.properties, ...base.properties } },
   question: { ...question, properties: { ...question.properties, ...base.properties } },
   questionAnswerStatistic,
