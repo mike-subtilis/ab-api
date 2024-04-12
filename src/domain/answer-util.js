@@ -12,7 +12,6 @@ module.exports = {
       firstIndex,
       secondIndex,
     ];
-
   },
   selectAnswersForBallot(potentialAnswerIds) {
     if (!potentialAnswerIds || potentialAnswerIds.length < 2) {

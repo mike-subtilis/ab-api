@@ -3,7 +3,6 @@ const { pick } = require('../util/objectUtil');
 const answerUtil = require('./answer-util');
 
 module.exports.create = (repo, logger) => {
-  const questionRepo = repo.question;
   const answerRepo = repo.answer;
   const ballotKVStore = repo.ballot;
   const questionAnswerStatisticRepo = repo.questionAnswerStatistic;
@@ -24,7 +23,7 @@ module.exports.create = (repo, logger) => {
     const expiresAt = new Date(createdAt.getTime() + 3600000);
     const persistedBallot = {
       id: crypto.randomUUID(),
-      questionId: questionId,
+      questionId,
       userId: user?.id || '',
       answerIds: [answer0.id, answer1.id],
       createdAt: createdAt.toISOString(),

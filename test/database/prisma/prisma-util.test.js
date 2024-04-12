@@ -30,12 +30,12 @@ describe('prisma-util', () => {
     });
 
     test('should return a setter for known object property in schema when updating', () => {
-      expect(sut.getFieldToSet('id-1', 'bobj', schema, true))
+      expect(sut.getFieldToSet('id-1', 'bobj', schema, null, true))
         .toEqual({ set: { id: 'id-1' } });
     });
 
     test('should return a setter for known object array property in schema when updating', () => {
-      expect(sut.getFieldToSet(['id-1', 'id-2', 'id-3'], 'barrayobj', schema, true))
+      expect(sut.getFieldToSet(['id-1', 'id-2', 'id-3'], 'barrayobj', schema, null, true))
         .toEqual({ set: [{ id: 'id-1' }, { id: 'id-2' }, { id: 'id-3' }] });
     });
   });
