@@ -4,9 +4,10 @@ const baseRedisKVStore = require('./redis/base-redis-kv-store');
 const baseInMemoryKVStore = require('./in-memory/base-in-memory-kv-store');
 const basePrismaRepo = require('./prisma/base-prisma-repo');
 const prismaClientFactory = require('./prisma/prisma-client');
-const questionAnswerStatisticRepo = require('./repos/question-answer-statistic-repo');
-const questionAnswerUserStatisticRepo = require('./repos/question-answer-user-statistic-repo');
-const questionStatisticRepo = require('./repos/question-statistic-repo');
+const cacheRepoFactory = require('./cache/cache-repo');
+const questionAnswerStatisticRepo = require('./implementation/question-answer-statistic-repo');
+const questionAnswerUserStatisticRepo = require('./implementation/question-answer-user-statistic-repo');
+const questionStatisticRepo = require('./implementation/question-statistic-repo');
 const schema = require('./schemas/index');
 
 module.exports.create = async (dbConfig, logger) => {
@@ -77,12 +78,13 @@ module.exports.create = async (dbConfig, logger) => {
     { entityType: 'User', schema: schema.user },
     logger,
   );
+  const cachedUserRepo = cacheRepoFactory.create(userRepo);
 
   return {
     question: questionRepo,
     answer: answerRepo,
     tag: tagRepo,
-    user: userRepo,
+    user: cachedUserRepo,
     questionAnswerStatistic: await questionAnswerStatisticRepo.create(cosmosDb, logger),
     questionAnswerUserStatistic: await questionAnswerUserStatisticRepo.create(cosmosDb, logger),
     questionStatistic: await questionStatisticRepo.create(cosmosDb, logger),
