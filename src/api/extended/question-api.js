@@ -108,8 +108,8 @@ module.exports.create = ({ repo, authorizer, options, logger }) => {
     '/',
     baseEntityApiFactory.create({
       repo,
-      entityHandler: questionHandler,
       authorizer,
+      entityHandler: questionHandler,
       entityType: 'question',
       options: { readOnly: options?.isAnonymous },
       logger,

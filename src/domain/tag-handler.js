@@ -12,5 +12,9 @@ module.exports.create = (repo, logger) => {
     }
   }
 
-  return { ensureAllAreCreated };
+  function transformTagObjectsToDisplay(tags) {
+    return (tags || []).map(t => t.display);
+  }
+
+  return { ensureAllAreCreated, transformTagObjectsToDisplay };
 };

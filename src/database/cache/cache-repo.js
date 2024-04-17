@@ -84,6 +84,7 @@ module.exports.create = (underlyingRepo, constructorOptions) => {
 
   return {
     getCount: underlyingRepo.getCount,
+    getDistinct: underlyingRepo.getDistinct,
     getPage: underlyingRepo.getPage,
     get,
     getUnique,

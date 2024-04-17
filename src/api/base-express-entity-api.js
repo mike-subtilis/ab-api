@@ -1,5 +1,5 @@
 const express = require('express');
-const { omit } = require('../util/objectUtil');
+const { mapValues, omit } = require('../util/objectUtil');
 
 module.exports.create = (constructorOptions) => {
   const {
@@ -20,9 +20,13 @@ module.exports.create = (constructorOptions) => {
 
   router.get('/', authorizer.filter(`${entityType}:list`), async (req, res) => {
     const { page = 1, pageSize = 25, ...rest } = req.query;
+    const parsedQueryOptions = mapValues(
+      rest,
+      v => ((typeof v === 'string' && v.includes(',')) ? v.split(',') : v),
+    );
     const results = (entityHandler && entityHandler.getPage)
-      ? await entityHandler.getPage(page, pageSize, { ...rest, authorizationFilters: req.authorizationFilters }, req.user)
-      : await entityRepo.getPage(page, pageSize, { ...rest, authorizationFilters: req.authorizationFilters }, req.user);
+      ? await entityHandler.getPage(page, pageSize, { ...parsedQueryOptions, authorizationFilters: req.authorizationFilters }, req.user)
+      : await entityRepo.getPage(page, pageSize, { ...parsedQueryOptions, authorizationFilters: req.authorizationFilters }, req.user);
     res.json(results);
   });
 

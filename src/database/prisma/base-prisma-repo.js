@@ -30,11 +30,14 @@ module.exports.create = async (prismaClient, configuration, logger) => {
   function formatFilter(k, fieldDef, filterValue) {
     switch (fieldDef.type) {
       case 'string':
-        if (Array.isArray(filterValue)) {
-          return { [k]: { in: filterValue } };
-        }
         if (fieldDef.enum) {
+          if (Array.isArray(filterValue)) {
+            return { [k]: { in: filterValue } };
+          }
           return { [k]: filterValue };
+        }
+        if (Array.isArray(filterValue)) {
+          return { OR: filterValue.map(v => ({ [k]: { contains: v, mode: 'insensitive' } })) };
         }
         return { [k]: { contains: filterValue, mode: 'insensitive' } };
 
@@ -160,6 +163,19 @@ module.exports.create = async (prismaClient, configuration, logger) => {
     return count;
   }
 
+  async function getDistinct(fieldName, queryOptions) { // also passed: currentUser
+    logger.trace(`${entityType}.getDistinct(${fieldName}, ${JSON.stringify(queryOptions)})...`);
+    const whereInfo = extractFilterInfo(queryOptions);
+
+    const results = await table.findMany({
+      distinct: [fieldName],
+      ...whereInfo,
+      select: { [fieldName]: true },
+    });
+
+    return results.map(r => r[fieldName]);
+  }
+
   async function getPage(pageNumber, pageSize, queryOptions) { // also passed: currentUser
     logger.trace(`${entityType}.getPage(${pageNumber}, ${pageSize}, ${JSON.stringify(queryOptions)})...`);
     const sortInfo = extractSortInfo(queryOptions);
@@ -232,5 +248,5 @@ module.exports.create = async (prismaClient, configuration, logger) => {
     throw new Error('Not implemented');
   }
 
-  return { getCount, getPage, get, getUnique, create, update, delete: deleteEntity };
+  return { getCount, getDistinct, getPage, get, getUnique, create, update, delete: deleteEntity };
 };
