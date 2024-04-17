@@ -10,7 +10,7 @@ module.exports.create = (repo, logger) => {
         ...queryOptions,
         include: {
           ...queryOptions.include,
-          question: { select: { id: true } },
+          questions: { select: { id: true } },
         },
       };
     }

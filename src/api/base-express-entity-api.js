@@ -32,8 +32,8 @@ module.exports.create = (constructorOptions) => {
 
   router.get('/:id', authorizer.check(`${entityType}:read`), async (req, res) => {
     const results = (entityHandler && entityHandler.get)
-      ? await entityHandler.get(req.params.id)
-      : await entityRepo.get(req.params.id);
+      ? await entityHandler.get(req.params.id, req.query)
+      : await entityRepo.get(req.params.id, req.query);
     res.json(results);
   });
 
