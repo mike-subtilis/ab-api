@@ -6,6 +6,7 @@
 
     "questions": { "type": "array", "items": { "type": "object" } },
     "tags": { "type": "array", "items": { "type": "object" } },
+    "imageUrl": { "type": "string" },
 
     "publicity": { "type": "string", "enum": ["private", "public"] }
   }

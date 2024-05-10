@@ -32,7 +32,7 @@ module.exports.create = (repo, logger) => {
     const savedBallot = await ballotKVStore.set(persistedBallot.id, persistedBallot);
     const hydratedBallot = {
       id: savedBallot.id,
-      answers: [answer0, answer1].map(a => pick(a, ['text', 'tags'])),
+      answers: [answer0, answer1].map(a => pick(a, ['text', 'tags', 'imageUrl'])),
       expiresAt: savedBallot.expiresAt,
     };
 

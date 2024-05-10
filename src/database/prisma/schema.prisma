@@ -4,6 +4,8 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
+// run: npx prisma migrate dev --name "brief commit text"
+
 generator client {
   provider = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-3.0.x"]
@@ -43,6 +45,7 @@ model Answer {
   text          String?
   publicity     Publicity @default(private)
   tags          Tag[]
+  imageUrl      String?
   questions     Question[]
 }
 
